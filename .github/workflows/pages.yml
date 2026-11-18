@@ -1,0 +1,101 @@
+name: build-research-site
+
+# 触发条件：产物或渲染逻辑变化时重建；也允许手动触发
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sequoia-service/data/*.json'
+      - 'sequoia-service/reports/**'
+      - 'tools/render_site.py'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+# 同一时间只允许一个部署，新的推送取消排队中的旧任务
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 只跑离线可复现的测试。三个 *.e2e.js 需要境内行情接口与本地服务，
+      # 在境外 runner 上不可靠，故意不纳入 CI。
+      - name: 运行离线单元测试
+        working-directory: astock-analyst
+        run: |
+          node --test \
+            tests/quality.test.js \
+            tests/engine.test.js \
+            tests/indicators.test.js \
+            tests/ui.test.js \
+            tests/llm.test.js \
+            tests/factors-page.smoke.js \
+            tests/picks-page.smoke.js
+
+      # 渲染前先确认产物完整，避免把空页面发布出去
+      - name: 校验产物完整性
+        run: |
+          python3 - <<'PY'
+          import json, sys
+          required = {
+              "factor_score.json": ["generatedAt", "factors", "costSensitivity", "evidenceGate"],
+              "factor_rolling.json": ["n_periods", "summary", "lag"],
+              "factor_run.json": ["runId", "finishedAt", "ok"],
+          }
+          bad = []
+          for name, keys in required.items():
+              path = "sequoia-service/data/" + name
+              try:
+                  data = json.load(open(path, encoding="utf-8"))
+              except Exception as exc:
+                  bad.append("%s 无法读取: %s" % (name, exc))
+                  continue
+              missing = [k for k in keys if k not in data]
+              if missing:
+                  bad.append("%s 缺少字段: %s" % (name, ", ".join(missing)))
+          if bad:
+              print("产物校验失败：")
+              for item in bad:
+                  print("  -", item)
+              sys.exit(1)
+          print("产物校验通过")
+          PY
+
+      - name: 渲染静态看板
+        run: python3 tools/render_site.py --data sequoia-service/data --out site
+
+      - name: 附上因子体检报告
+        run: |
+          if [ -d sequoia-service/reports ]; then
+            mkdir -p site/reports
+            cp sequoia-service/reports/*.html site/reports/ 2>/dev/null || true
+            ls -la site/reports || true
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
