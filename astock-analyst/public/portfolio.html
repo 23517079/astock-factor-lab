@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>持仓分析 · A 股分析终端</title>
+<link rel="stylesheet" href="/milo.css">
+<style>
+  body { margin: 0; background: var(--m-bg); }
+  .pf-wrap { max-width: 1280px; margin: 0 auto; padding: 22px 22px 60px; }
+  .pf-head h1 { font-size: 22px; margin: 0 0 6px; color: var(--m-tx); }
+  .pf-head p { margin: 0 0 18px; font-size: 13px; color: var(--m-tx2); }
+
+  .pf-sum { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .pf-sum .k { background: #fff; border-radius: 16px; padding: 15px 17px; box-shadow: var(--m-shadow); }
+  .pf-sum .k .lb { font-size: 12px; color: var(--m-tx3); margin-bottom: 7px; }
+  .pf-sum .k .vl { font-size: 22px; font-weight: 800; color: var(--m-tx); letter-spacing: -0.4px; }
+  .pf-sum .k .sub { font-size: 12px; color: var(--m-tx3); margin-top: 5px; }
+
+  .pf-flags { margin-bottom: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .pf-flag { font-size: 12.5px; line-height: 1.6; padding: 10px 14px; border-radius: 12px; border: 1px solid; }
+  .pf-flag.info { background: #eff4ff; border-color: #dbe7ff; color: #1d4ed8; }
+  .pf-flag.warn { background: #fff7e8; border-color: #f5ddb0; color: #a45b00; }
+  .pf-flag.bad  { background: #fff0f0; border-color: #f7c9c9; color: #b91c1c; }
+
+  .pf-card { background: #fff; border-radius: 16px; box-shadow: var(--m-shadow); overflow: hidden; }
+  .pf-form { padding: 14px 16px; display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; border-bottom: 1px solid var(--m-line); }
+  .pf-form label { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; color: var(--m-tx3); }
+  .pf-form input { border: 1px solid var(--m-line2); border-radius: 9px; padding: 7px 9px; font-size: 13px; width: 96px; outline: none; color: var(--m-tx); background: #fff; }
+  .pf-form input:focus { border-color: var(--m-accent); }
+  .pf-form input.w-sm { width: 74px; }
+  .pf-form input.w-lg { width: 140px; }
+  .pf-btn { border: none; border-radius: 10px; padding: 9px 16px; font-size: 13px; font-weight: 700; cursor: pointer; color: #fff; background: var(--m-accent); }
+  .pf-btn.alt { background: var(--m-accent2); }
+  .pf-btn.gray { background: #8896ad; }
+  .pf-btn:hover { filter: brightness(1.06); }
+
+  table.pf-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.pf-tbl th { text-align: right; font-weight: 600; font-size: 11.5px; color: var(--m-tx3); padding: 11px 10px; border-bottom: 1px solid var(--m-line); white-space: nowrap; background: #fbfcfe; }
+  table.pf-tbl th:first-child, table.pf-tbl td:first-child { text-align: left; padding-left: 16px; }
+  table.pf-tbl th:last-child, table.pf-tbl td:last-child { text-align: center; padding-right: 16px; }
+  table.pf-tbl td { text-align: right; padding: 11px 10px; border-bottom: 1px solid var(--m-line); color: var(--m-tx); white-space: nowrap; }
+  table.pf-tbl tr:hover td { background: #fafcff; }
+  table.pf-tbl td input { width: 78px; text-align: right; border: 1px solid transparent; border-radius: 7px; padding: 4px 6px; font-size: 13px; color: var(--m-tx); background: transparent; }
+  table.pf-tbl td input:hover { border-color: var(--m-line2); background: #fff; }
+  table.pf-tbl td input:focus { border-color: var(--m-accent); background: #fff; outline: none; }
+  .code-cell b { font-family: var(--mono); font-size: 12.5px; }
+  .code-cell .nm { color: var(--m-tx2); margin-left: 6px; font-size: 12.5px; }
+  .up { color: var(--m-up); }
+  .down { color: var(--m-down); }
+  .dim { color: var(--m-tx3); }
+  .del { border: none; background: transparent; color: var(--m-tx3); cursor: pointer; font-size: 15px; line-height: 1; padding: 2px 6px; border-radius: 6px; }
+  .del:hover { background: #fff0f0; color: #dc2626; }
+  .sig { display: inline-block; font-size: 10.5px; padding: 1px 6px; border-radius: 999px; background: #eaf1ff; color: var(--m-accent); margin-left: 6px; }
+  .pf-empty { padding: 34px; text-align: center; color: var(--m-tx3); font-size: 13px; }
+  .pf-foot { padding: 11px 16px; font-size: 11.5px; color: var(--m-tx3); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .pf-stat { font-size: 12px; color: var(--m-tx3); align-self: center; }
+</style>
+</head>
+<body>
+
+<div class="pf-wrap">
+  <div class="pf-head">
+    <h1>个人持仓分析</h1>
+    <p>录入股数与成本价，自动核算市值、浮动盈亏、当日盈亏与集中度。行情来自真实数据源（东财 → 新浪 → 腾讯 逐级回退）。</p>
+  </div>
+
+  <div id="qualityBar"></div>
+  <div id="summary" class="pf-sum"></div>
+  <div id="flags" class="pf-flags"></div>
+
+  <div class="pf-card">
+    <div class="pf-form">
+      <label>代码<input id="fCode" maxlength="6" placeholder="600519"></label>
+      <label>股数<input id="fShares" type="number" min="1" step="100" placeholder="100"></label>
+      <label>成本价<input id="fCost" type="number" min="0" step="0.001" placeholder="1400.00"></label>
+      <label>买入日期<input id="fDate" type="date" class="w-lg"></label>
+      <label>备注<input id="fNote" class="w-lg" placeholder="可选"></label>
+      <button id="btnAdd" class="pf-btn">添加持仓</button>
+      <button id="btnSave" class="pf-btn alt">保存全部</button>
+      <button id="btnReload" class="pf-btn gray">刷新行情</button>
+      <span id="stat" class="pf-stat"></span>
+    </div>
+
+    <div id="tableBox">
+      <div class="pf-empty">正在加载持仓…</div>
+    </div>
+
+    <div class="pf-foot">
+      <span>盈亏按「现价 − 加权平均成本」计算；当日盈亏按「现价 − 昨收」计算，不含手续费与印花税。</span>
+      <span id="asOf"></span>
+    </div>
+  </div>
+</div>
+
+<script src="/nav.js"></script>
+<script src="/quality.js"></script>
+<script>
+  if (window.MiloNav) MiloNav.mount('portfolio');
+  if (window.MiloQuality) MiloQuality.mount('qualityBar');
+
+  var positions = [];     // 当前表格里的持仓（以服务端返回为准，本地编辑后覆盖）
+  var loading = false;
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function money(v) {
+    if (v == null) return '<span class="dim">—</span>';
+    var n = Number(v);
+    var s = Math.abs(n) >= 10000 ? n.toFixed(0) : n.toFixed(2);
+    return s.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+  function cls(v) { return v == null ? '' : (v > 0 ? 'up' : (v < 0 ? 'down' : '')); }
+  function signed(v, suffix) {
+    if (v == null) return '<span class="dim">—</span>';
+    return (v > 0 ? '+' : '') + Number(v).toFixed(2) + (suffix || '');
+  }
+  function toast(msg) {
+    var t = document.createElement('div');
+    t.className = 'toast'; t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(function () { t.classList.add('show'); });
+    setTimeout(function () { t.classList.remove('show'); setTimeout(function () { t.remove(); }, 250); }, 2000);
+  }
+
+  function renderSummary(sm) {
+    var box = document.getElementById('summary');
+    if (!sm) { box.innerHTML = ''; return; }
+    var items = [
+      { lb: '总市值', vl: '¥' + money(sm.totalValue), sub: sm.quotedCount + ' / ' + sm.count + ' 只有行情' },
+      { lb: '总成本', vl: '¥' + money(sm.totalCost), sub: '按加权平均成本' },
+      {
+        lb: '浮动盈亏', vl: (sm.totalPnl > 0 ? '+' : '') + '¥' + money(sm.totalPnl),
+        sub: sm.totalPnlPct == null ? '—' : (sm.totalPnlPct > 0 ? '+' : '') + sm.totalPnlPct + '%',
+        c: cls(sm.totalPnl)
+      },
+      {
+        lb: '当日盈亏', vl: (sm.dayPnl > 0 ? '+' : '') + '¥' + money(sm.dayPnl),
+        sub: '相对昨收', c: cls(sm.dayPnl)
+      }
+    ];
+    box.innerHTML = items.map(function (x) {
+      return '<div class="k"><div class="lb">' + x.lb + '</div>' +
+        '<div class="vl ' + (x.c || '') + '">' + x.vl + '</div>' +
+        '<div class="sub ' + (x.c || '') + '">' + x.sub + '</div></div>';
+    }).join('');
+  }
+
+  function renderFlags(flags) {
+    var box = document.getElementById('flags');
+    if (!flags || !flags.length) { box.innerHTML = ''; return; }
+    box.innerHTML = flags.map(function (f) {
+      return '<div class="pf-flag ' + f.level + '">' + esc(f.text) + '</div>';
+    }).join('');
+  }
+
+  function renderTable(rows) {
+    var box = document.getElementById('tableBox');
+    if (!rows || !rows.length) {
+      box.innerHTML = '<div class="pf-empty">还没有持仓。用上方的表单添加第一只，或在下方直接录入。</div>';
+      return;
+    }
+    var head = '<table class="pf-tbl"><thead><tr>' +
+      '<th>标的</th><th>股数</th><th>成本价</th><th>现价</th><th>涨跌</th>' +
+      '<th>市值</th><th>浮动盈亏</th><th>盈亏%</th><th>当日盈亏</th><th>占比</th><th></th>' +
+      '</tr></thead><tbody>';
+    var body = rows.map(function (r, i) {
+      return '<tr data-i="' + i + '">' +
+        '<td class="code-cell"><b>' + esc(r.code) + '</b><span class="nm">' + esc(r.name || '') + '</span>' +
+        (r.signal ? '<span class="sig">' + esc(r.signal) + '</span>' : '') + '</td>' +
+        '<td><input data-f="shares" value="' + r.shares + '" type="number" min="1"></td>' +
+        '<td><input data-f="avgCost" value="' + r.avgCost + '" type="number" min="0" step="0.001"></td>' +
+        '<td>' + (r.price == null ? '<span class="dim">—</span>' : r.price.toFixed(2)) + '</td>' +
+        '<td class="' + cls(r.changePct) + '">' + signed(r.changePct, '%') + '</td>' +
+        '<td>' + money(r.marketValue) + '</td>' +
+        '<td class="' + cls(r.pnl) + '">' + (r.pnl == null ? '<span class="dim">—</span>' : signed(r.pnl)) + '</td>' +
+        '<td class="' + cls(r.pnlPct) + '">' + signed(r.pnlPct, '%') + '</td>' +
+        '<td class="' + cls(r.dayPnl) + '">' + (r.dayPnl == null ? '<span class="dim">—</span>' : signed(r.dayPnl)) + '</td>' +
+        '<td>' + (r.weight == null ? '<span class="dim">—</span>' : r.weight.toFixed(1) + '%') + '</td>' +
+        '<td><button class="del" data-del="' + i + '" title="移除">×</button></td>' +
+        '</tr>';
+    }).join('');
+    box.innerHTML = head + body + '</tbody></table>';
+
+    box.querySelectorAll('[data-del]').forEach(function (b) {
+      b.onclick = function () {
+        var i = Number(b.dataset.del);
+        positions.splice(i, 1);
+        persist(true);
+      };
+    });
+    // 编辑股数/成本后提示保存
+    box.querySelectorAll('input[data-f]').forEach(function (inp) {
+      inp.onchange = function () {
+        var i = Number(inp.closest('tr').dataset.i);
+        var f = inp.dataset.f;
+        var v = Number(inp.value);
+        if (!(v >= 0)) { toast('请输入有效数字'); return; }
+        positions[i][f] = v;
+        document.getElementById('stat').textContent = '有未保存的修改，点「保存全部」生效';
+      };
+    });
+  }
+
+  function render(data) {
+    if (data.positions) positions = data.positions.map(function (r) {
+      return {
+        code: r.code, name: r.name, shares: r.shares, avgCost: r.avgCost,
+        buyDate: r.buyDate || '', note: r.note || ''
+      };
+    });
+    renderSummary(data.summary);
+    renderFlags(data.flags);
+    renderTable(data.positions || []);
+    document.getElementById('asOf').textContent = data.asOf
+      ? '行情时间：' + new Date(data.asOf).toLocaleString('zh-CN')
+      : '';
+    document.getElementById('stat').textContent = '';
+  }
+
+  async function load() {
+    if (loading) return;
+    loading = true;
+    document.getElementById('stat').textContent = '正在拉取行情…';
+    try {
+      var r = await fetch('/api/portfolio');
+      var d = await r.json();
+      if (!d.ok) throw new Error(d.message || '加载失败');
+      render(d);
+    } catch (e) {
+      document.getElementById('tableBox').innerHTML =
+        '<div class="pf-empty">加载失败：' + esc(e.message) + '</div>';
+    } finally {
+      loading = false;
+    }
+  }
+
+  async function persist(silent) {
+    try {
+      var r = await fetch('/api/portfolio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ positions: positions })
+      });
+      var d = await r.json();
+      if (!d.ok) throw new Error(d.message || '保存失败');
+      render(d);
+      if (!silent) toast(d.message || ('已保存 ' + d.saved + ' 只持仓'));
+    } catch (e) {
+      toast('保存失败：' + e.message);
+    }
+  }
+
+  document.getElementById('btnAdd').onclick = function () {
+    var code = document.getElementById('fCode').value.trim();
+    var shares = Number(document.getElementById('fShares').value);
+    var cost = Number(document.getElementById('fCost').value);
+    if (!/^\d{6}$/.test(code)) { toast('请输入 6 位股票代码'); return; }
+    if (!(shares > 0)) { toast('股数必须大于 0'); return; }
+    if (!(cost >= 0)) { toast('成本价不能为负'); return; }
+    positions.push({
+      code: code, name: '', shares: shares, avgCost: cost,
+      buyDate: document.getElementById('fDate').value || '',
+      note: document.getElementById('fNote').value.trim()
+    });
+    document.getElementById('fCode').value = '';
+    document.getElementById('fShares').value = '';
+    document.getElementById('fCost').value = '';
+    document.getElementById('fNote').value = '';
+    persist(false);
+  };
+
+  document.getElementById('btnSave').onclick = function () { persist(false); };
+  document.getElementById('btnReload').onclick = function () { load(); };
+
+  load();
+</script>
+</body>
+</html>

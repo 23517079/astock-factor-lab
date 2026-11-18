@@ -1,0 +1,297 @@
+{
+  "structure": {
+    "panel_rows": 38293616,
+    "panel_symbols": 5030,
+    "panel_factors": 24,
+    "date_min": "2025-06-03",
+    "date_max": "2026-11-13",
+    "dup_pk": 0,
+    "daily_min": "2020-06-01",
+    "daily_max": "2026-11-13",
+    "out_of_range": 0,
+    "orphan_symbols": 0,
+    "nan_rows": 0,
+    "inf_rows": 0
+  },
+  "coverage": {
+    "universe": 5030,
+    "covered": 5030,
+    "missing_count": 0,
+    "missing_sample": [],
+    "per_factor": [
+      {
+        "factor": "amihud20",
+        "rows": 1676793,
+        "symbols": 5027,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 21
+      },
+      {
+        "factor": "atr_pct14",
+        "rows": 1691869,
+        "symbols": 5028,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 15
+      },
+      {
+        "factor": "corr_pv20",
+        "rows": 1661721,
+        "symbols": 5027,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 21
+      },
+      {
+        "factor": "dist_high250",
+        "rows": 1461080,
+        "symbols": 5009,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 60
+      },
+      {
+        "factor": "dist_low250",
+        "rows": 1461080,
+        "symbols": 5009,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 60
+      },
+      {
+        "factor": "intraday_ret20",
+        "rows": 1661721,
+        "symbols": 5027,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 20
+      },
+      {
+        "factor": "ma_gap20",
+        "rows": 1661721,
+        "symbols": 5027,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 20
+      },
+      {
+        "factor": "ma_gap60",
+        "rows": 1461080,
+        "symbols": 5009,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 60
+      },
+      {
+        "factor": "max_ret20",
+        "rows": 1656697,
+        "symbols": 5027,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 21
+      },
+      {
+        "factor": "mom120",
+        "rows": 1056529,
+        "symbols": 4984,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 141
+      },
+      {
+        "factor": "mom20",
+        "rows": 1556288,
+        "symbols": 5019,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 41
+      },
+      {
+        "factor": "mom60",
+        "rows": 1356046,
+        "symbols": 5001,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 81
+      },
+      {
+        "factor": "obv_slope20",
+        "rows": 1661721,
+        "symbols": 5027,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 21
+      },
+      {
+        "factor": "overnight_ret20",
+        "rows": 1656697,
+        "symbols": 5027,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 21
+      },
+      {
+        "factor": "r2_20",
+        "rows": 1661721,
+        "symbols": 5027,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 20
+      },
+      {
+        "factor": "ret1",
+        "rows": 1752180,
+        "symbols": 5030,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 2
+      },
+      {
+        "factor": "rev10",
+        "rows": 1706944,
+        "symbols": 5028,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 11
+      },
+      {
+        "factor": "rev5",
+        "rows": 1732073,
+        "symbols": 5029,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 6
+      },
+      {
+        "factor": "slope20",
+        "rows": 1661721,
+        "symbols": 5027,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 20
+      },
+      {
+        "factor": "turn20",
+        "rows": 1661721,
+        "symbols": 5027,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 20
+      },
+      {
+        "factor": "turn_cv20",
+        "rows": 1661721,
+        "symbols": 5027,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 20
+      },
+      {
+        "factor": "vol20",
+        "rows": 1656697,
+        "symbols": 5027,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 21
+      },
+      {
+        "factor": "vol_ratio5v20",
+        "rows": 1661721,
+        "symbols": 5027,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 20
+      },
+      {
+        "factor": "vol_ratio_20_60",
+        "rows": 1456074,
+        "symbols": 5009,
+        "first_date": "2025-06-03",
+        "last_date": "2026-11-13",
+        "min_bars": 61
+      }
+    ]
+  },
+  "verify": {
+    "sampled": 12,
+    "cells_compared": 92676,
+    "mismatch_cells": 0,
+    "details": [
+      {
+        "symbol": "301399",
+        "cells": 7723,
+        "mismatch": 0,
+        "max_abs_diff": 0.0
+      },
+      {
+        "symbol": "002838",
+        "cells": 7723,
+        "mismatch": 0,
+        "max_abs_diff": 0.0
+      },
+      {
+        "symbol": "600641",
+        "cells": 7723,
+        "mismatch": 0,
+        "max_abs_diff": 0.0
+      },
+      {
+        "symbol": "001207",
+        "cells": 7723,
+        "mismatch": 0,
+        "max_abs_diff": 0.0
+      },
+      {
+        "symbol": "002091",
+        "cells": 7723,
+        "mismatch": 0,
+        "max_abs_diff": 0.0
+      },
+      {
+        "symbol": "605299",
+        "cells": 7723,
+        "mismatch": 0,
+        "max_abs_diff": 0.0
+      },
+      {
+        "symbol": "002290",
+        "cells": 7723,
+        "mismatch": 0,
+        "max_abs_diff": 0.0
+      },
+      {
+        "symbol": "600298",
+        "cells": 7723,
+        "mismatch": 0,
+        "max_abs_diff": 0.0
+      },
+      {
+        "symbol": "688429",
+        "cells": 7723,
+        "mismatch": 0,
+        "max_abs_diff": 0.0
+      },
+      {
+        "symbol": "001335",
+        "cells": 7723,
+        "mismatch": 0,
+        "max_abs_diff": 0.0
+      },
+      {
+        "symbol": "603689",
+        "cells": 7723,
+        "mismatch": 0,
+        "max_abs_diff": 0.0
+      },
+      {
+        "symbol": "300404",
+        "cells": 7723,
+        "mismatch": 0,
+        "max_abs_diff": 0.0
+      }
+    ]
+  },
+  "problems": [],
+  "elapsed_sec": 572.4
+}

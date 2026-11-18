@@ -1,0 +1,53 @@
+/* ============================================================
+   nav.css — 跨页共享导航（Milo 风格）
+   仅承载 .topnav 与其依赖变量，供「保留原设计的个股分析页」单独引入，
+   避免把 milo.css 里的通用类（.chip / .card 等）带进去造成样式串味。
+   ============================================================ */
+
+:root {
+  --m-bg: #f4f6fb;
+  --m-card: #ffffff;
+  --m-card2: #f8fafd;
+  --m-line: #eef1f6;
+  --m-line2: #e3e8f0;
+  --m-tx: #1a2233;
+  --m-tx2: #5a6b85;
+  --m-tx3: #95a0b5;
+  --m-accent: #2f6bff;
+  --m-accent2: #ff8a3d;
+  --m-up: #e64545;
+  --m-down: #13a463;
+}
+
+.topnav {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 22px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(180%) blur(8px);
+  border-bottom: 1px solid var(--m-line);
+}
+.topnav .brand {
+  display: flex; align-items: center; gap: 9px;
+  font-weight: 800; font-size: 16px; margin-right: 14px;
+}
+.topnav .brand .logo {
+  width: 30px; height: 30px; border-radius: 9px;
+  background: linear-gradient(135deg, var(--m-accent), #6aa1ff);
+  display: grid; place-items: center; color: #fff; font-size: 16px;
+}
+.topnav a.navlink {
+  text-decoration: none; color: var(--m-tx2); font-weight: 600; font-size: 13.5px;
+  padding: 7px 13px; border-radius: 9px; transition: .15s;
+}
+.topnav a.navlink:hover { background: var(--m-card2); color: var(--m-tx); }
+.topnav a.navlink.active { background: #eaf1ff; color: var(--m-accent); }
+.topnav .spacer { flex: 1; }
+.topnav .status {
+  font-size: 12px; color: var(--m-tx3);
+  display: flex; align-items: center; gap: 6px;
+}
+.topnav .status .dot {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--m-up);
+}
+.topnav .status .dot.ok { background: var(--m-down); }

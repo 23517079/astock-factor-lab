@@ -1,0 +1,70 @@
+{
+  "time": "2026-11-13 18:27:36",
+  "sample_dates": 12,
+  "hold": 5,
+  "strategies": [
+    {
+      "key": "ma_volume",
+      "name": "均线放量突破",
+      "group": "趋势与突破",
+      "win_rate": 72.7,
+      "avg_return": 2.27,
+      "samples": 11,
+      "error": null
+    },
+    {
+      "key": "turtle",
+      "name": "海龟突破",
+      "group": "趋势与突破",
+      "win_rate": 49.7,
+      "avg_return": 0.36,
+      "samples": 157,
+      "error": null
+    },
+    {
+      "key": "high_tight_flag",
+      "name": "高窄旗形",
+      "group": "趋势与突破",
+      "win_rate": null,
+      "avg_return": null,
+      "samples": 0,
+      "error": null
+    },
+    {
+      "key": "limit_up_shakeout",
+      "name": "涨停洗盘",
+      "group": "趋势与突破",
+      "win_rate": null,
+      "avg_return": null,
+      "samples": 0,
+      "error": null
+    },
+    {
+      "key": "uptrend_limit_down",
+      "name": "上升跌停反包",
+      "group": "超跌与反转",
+      "win_rate": null,
+      "avg_return": null,
+      "samples": 0,
+      "error": null
+    },
+    {
+      "key": "rps_breakout",
+      "name": "欧奈尔RPS突破",
+      "group": "趋势与突破",
+      "win_rate": 49.5,
+      "avg_return": -0.23,
+      "samples": 194,
+      "error": null
+    },
+    {
+      "key": "private_placement",
+      "name": "定增套利",
+      "group": "超跌与反转",
+      "win_rate": null,
+      "avg_return": null,
+      "samples": 0,
+      "error": null
+    }
+  ]
+}

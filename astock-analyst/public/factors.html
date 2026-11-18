@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>因子体检 · A 股分析终端</title>
+<link rel="stylesheet" href="/milo.css">
+</head>
+<body class="milo">
+
+<div class="m-wrap">
+
+  <div class="m-section-title" style="margin-top:8px">
+    <span class="ic">🔬</span>因子体检
+    <span id="fkStatus" class="muted" style="font-weight:500;font-size:13px;margin-left:8px"></span>
+  </div>
+  <p class="muted" style="margin:-4px 0 14px">
+    这一页回答一个问题：<b>哪些指标真的能把"会涨的股票"和"不会涨的股票"分开？</b>
+    做法是每天给全市场股票按某个指标排队，看排在前面的那一批，后面几天是不是真的涨得更好。
+    <b>点任意一行，详情会直接展开在这一行下面。</b>
+  </p>
+
+  <div class="fk-caveat" id="caveat">
+    <b>先看边界：这里给的是"值得继续验证"，不是"能用来赚钱"</b>
+    <ul id="caveatList"></ul>
+  </div>
+
+  <div class="fk-kpis" id="kpis"></div>
+
+  <details class="fk-explain" id="explain" open>
+    <summary>怎么看下面这张表？（第一次看请展开，六句话讲完）</summary>
+    <div class="body">
+      <dl id="metricDl"></dl>
+      <dt>一句话总结</dt>
+      <dd>找 <b>|t 值| ≥ 2</b> 且 <b>q 值 &lt; 0.05</b> 且 <b>十组单调接近 ±1</b> 的指标——
+          三个条件同时满足，才算"这个指标真的能区分好坏"。只满足一两个的，都可能是运气。</dd>
+      <dt>下面四个筛选档是怎么定的？</dt>
+      <dd>
+        <b>值得复核</b>：统计显著（|t| ≥ 2 且 q &lt; 0.05）+ 十组收益接近单调 + 方向与系统登记一致。
+        这是唯一"可以拿去做进一步验证"的一档。<br>
+        <b>方向需翻转</b>：同样显著、同样单调，但<b>真实方向与登记的相反</b>——
+        比如系统登记"越大越好"，实测却是"越小越好"。照登记方向用会反向亏钱，要用必须先把方向翻过来。<br>
+        <b>仅统计显著</b>：IC 稳定，但十组收益没有顺序。可能这个指标只在极端值上有效（非线性），
+        也可能只是噪声。不能用，但值得换种方式再看。<br>
+        <b>未达门槛</b>：|t| &lt; 2，在现在这份数据里跟"完全没规律"区分不开。
+      </dd>
+    </div>
+  </details>
+
+  <div class="fk-legend">
+    <span><i class="g">值得复核</i>统计显著、十组收益也按顺序排、方向还对 → 可以拿去做下一步验证</span>
+    <span><i class="f">方向需翻转</i>有规律，但实际方向与登记相反 → 照登记方向用会反向亏钱</span>
+    <span><i class="m">仅统计显著</i>IC 稳定但十组收益没顺序 → 可能只在极端值上有用，不能直接用</span>
+    <span><i class="b">未达门槛</i>|t| 不到 2 → 现在这份数据里跟"没规律"区分不开</span>
+  </div>
+
+  <div class="fk-filters" id="filters">
+    <span class="f active" data-f="all">全部<span class="fk-filter-count" data-c="all"></span></span>
+    <span class="f" data-f="值得复核" title="统计显著 + 十组收益接近单调，方向与系统登记一致">值得复核<span class="fk-filter-count" data-c="值得复核"></span></span>
+    <span class="f" data-f="方向需翻转" title="统计显著，但真实方向与系统登记的相反：照原方向用会反向亏钱">方向需翻转<span class="fk-filter-count" data-c="方向需翻转"></span></span>
+    <span class="f" data-f="仅统计显著" title="IC 稳定但十组收益没有明显顺序，可能是非线性关系，也可能只是噪声">仅统计显著<span class="fk-filter-count" data-c="仅统计显著"></span></span>
+    <span class="f" data-f="未达门槛" title="|t| < 2，当前样本下跟「没规律」区分不开">未达门槛<span class="fk-filter-count" data-c="未达门槛"></span></span>
+    <input id="q" placeholder="搜因子名，如 vol20">
+  </div>
+  <div id="filterHint" class="muted" style="font-size:12.5px;margin:-4px 0 12px;padding-left:2px"></div>
+
+  <div id="fkFreshBanner"></div>
+
+  <div class="m-card" style="padding:4px 6px">
+    <div class="fk-scroll">
+      <table class="fk-table">
+        <thead><tr>
+          <th class="fk-cue" title="点行展开详情">▸</th>
+          <th>因子</th>
+          <th>类别</th>
+          <th title="系统登记的预期方向：越大越好 / 越小越好">方向</th>
+          <th title="IC 均值：排队后前面的人是不是真的涨得更好，-1 到 +1">IC</th>
+          <th title="t 值：这个 IC 是真本事还是运气，|t|≥2 通常认为不像运气">t 值</th>
+          <th title="q 值：测了 24 个指标，做多重比较校正，q&lt;0.05 才算真不是巧合">q 值</th>
+          <th title="十组单调性：+1 完全递增 / -1 完全反向 / 0 没规律">十组单调</th>
+          <th title="多空年化：买第 1 组卖第 10 组，一年赚多少（未扣成本）">多空年化</th>
+          <th title="换手：每次调仓要换掉多少，越高越难落地">换手</th>
+          <th>结论</th>
+        </tr></thead>
+        <tbody id="tbody"><tr><td colspan="11" class="loading">加载中…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="/freshness.js"></script>
+<script src="/nav.js"></script>
+<script>
+  MiloNav.mount('factors');
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function isNum(v) { return v !== null && v !== undefined && !isNaN(v); }
+  function fx(v, d) { return isNum(v) ? Number(v).toFixed(d == null ? 4 : d) : '—'; }
+  function sgn(v, d) { return isNum(v) ? (v >= 0 ? '+' : '') + Number(v).toFixed(d == null ? 2 : d) : '—'; }
+  function pc(v, d) { return isNum(v) ? (v >= 0 ? '+' : '') + (Number(v) * 100).toFixed(d == null ? 2 : d) + '%' : '—'; }
+  function rcls(v) { return isNum(v) ? (v >= 0 ? 'up' : 'down') : ''; }
+
+  var BADGE = {
+    '值得复核': 'fk-b-good', '方向需翻转': 'fk-b-flip',
+    '仅统计显著': 'fk-b-mid', '未达门槛': 'fk-b-bad', '数据不足': 'fk-b-bad'
+  };
+  /* 每个筛选档的白话注释，写在页面里而不是只靠 title，因为 title 要悬停才能看见 */
+  var FILTER_DESC = {
+    'all': '全部 24 个指标，按 t 值强弱排序',
+    '值得复核': '统计显著，十组收益也接近单调，方向与登记一致 —— 值得进一步验证',
+    '方向需翻转': '统计显著，但真实方向与登记的相反 —— 照原方向用会反向亏钱',
+    '仅统计显著': 'IC 稳定但十组收益没顺序 —— 可能是非线性，也可能只是噪声',
+    '未达门槛': '|t| 小于 2 —— 当前数据下跟「没规律」区分不开'
+  };
+
+  var ALL = [], FILTER = 'all', QUERY = '', PICKED = null, SEG = { rows: [], pools: [] };
+
+  function visible() {
+    return ALL.filter(function (f) {
+      if (FILTER !== 'all' && f.verdict !== FILTER) return false;
+      if (QUERY && f.name.toLowerCase().indexOf(QUERY) < 0 &&
+          String(f.label).indexOf(QUERY) < 0) return false;
+      return true;
+    });
+  }
+
+  function renderKpi(d) {
+    var p = d.meta.panel || {};
+    var strong = ALL.filter(function (f) { return isNum(f.tNw) && Math.abs(f.tNw) >= 2; }).length;
+    var worth = ALL.filter(function (f) { return f.verdict === '值得复核'; }).length;
+    var flip = ALL.filter(function (f) { return f.verdict === '方向需翻转'; }).length;
+    var cards = [
+      ['面板规模', (p.panelRows || 0).toLocaleString() + ' 行', (p.dateMin || '') + ' ~ ' + (p.dateMax || '')],
+      ['覆盖标的', (p.panelSymbols || 0) + ' 只', '行情库共 ' + (p.universe || 0) + ' 只'],
+      ['统计显著', strong + ' / ' + ALL.length, '修正后 |t| ≥ 2 的指标个数'],
+      ['值得复核', worth + ' 个', flip ? ('另有 ' + flip + ' 个方向需翻转') : '方向与先验一致']
+    ];
+    document.getElementById('kpis').innerHTML = cards.map(function (c) {
+      return '<div class="fk-kpi"><div class="k">' + esc(c[0]) + '</div>' +
+             '<div class="v">' + esc(c[1]) + '</div><div class="n">' + esc(c[2]) + '</div></div>';
+    }).join('');
+  }
+
+  function renderFilters() {
+    document.querySelectorAll('#filters .fk-filter-count').forEach(function (el) {
+      var k = el.dataset.c;
+      el.textContent = (k === 'all') ? ALL.length
+        : ALL.filter(function (f) { return f.verdict === k; }).length;
+    });
+    renderHint();
+  }
+
+  /* 当前选中的是哪一档、这档是什么意思——直接写在页面上，不靠鼠标悬停 */
+  function renderHint() {
+    var box = document.getElementById('filterHint');
+    if (!box) return;
+    var n = visible().length;
+    var txt = FILTER_DESC[FILTER] || '';
+    box.innerHTML = '<b>当前：' + esc(FILTER === 'all' ? '全部' : FILTER) + '</b>（' + n + ' 个）— ' + esc(txt) +
+      ' <span style="color:#2f6bff">· 点任意一行，详情展开在这一行下面</span>';
+  }
+
+  function detailHtml(f) {
+    var warn = '';
+    if (f.directionNote) {
+      warn = '<div class="fk-note warn">⚠ ' + esc(f.directionNote) + '</div>';
+    } else if (f.directionMismatch) {
+      warn = '<div class="fk-note warn">⚠ IC 与登记方向相反，下面分组里的"第 1 组"仅表示按先验方向排序，未必最好。</div>';
+    }
+
+    /* 人话卡片：一句话结论 + 补充 */
+    var tone = f.tone === 'good' ? '' : (f.tone === 'warn' ? ' warn' : ' bad');
+    var say = '<div class="fk-say' + tone + '">' +
+      '<div class="lead">' + esc(f.reading || '暂无结论') + '</div>' +
+      (f.readingDetail ? '<div class="sub">' + esc(f.readingDetail) + '</div>' : '') +
+      '</div>';
+
+    /* 这是什么 / 数值高说明什么 */
+    var def = '<div class="fk-def">' +
+      '<b>这个指标在量什么：</b>' + esc(f.plainWhat || f.label || '') +
+      '<br><b>数值高说明：</b>' + esc(f.plainHigh || '—') +
+      (f.plainNote ? '<br><span class="q">补充：' + esc(f.plainNote) + '</span>' : '') +
+      '<br><span class="q">计算口径：' + esc(f.formula || '') + '（需 ' + f.minBars + ' 根 K 线预热）</span>' +
+      '</div>';
+
+    var reads = '<table class="fk-seg"><tbody>' +
+      '<tr><td>IC 均值 / 标准差</td><td>' + sgn(f.ic, 4) + ' / ' + fx(f.icStd, 4) + '</td></tr>' +
+      '<tr><td>ICIR（IC 的稳定性）</td><td>' + sgn(f.icir, 3) + '</td></tr>' +
+      '<tr><td>t 值（未修正 / 修正后）</td><td>' + sgn(f.tNaive, 2) + ' / <b>' + sgn(f.tNw, 2) + '</b></td></tr>' +
+      '<tr><td>正 IC 占比</td><td>' + pc(f.positiveRatio, 1) + '</td></tr>' +
+      '<tr><td>多空年化 / 胜率</td><td>' + pc(f.lsAnnual) + ' / ' + pc(f.lsWin, 1) + '</td></tr>' +
+      '<tr><td>有效交易日 / 观测数</td><td>' + (f.nDays || '—') + ' / ' + (f.nObs || 0).toLocaleString() + '</td></tr>' +
+      '<tr><td>面板内完整度 / 市场覆盖</td><td>' + pc(f.completeness, 1) + ' / ' + pc(f.coverage, 1) + '</td></tr>' +
+      /* 单因子 IC / 十分组是离线统计的毛收益，没有逐因子重算扣费 ——
+         统一费率是单调变换，逐因子重算也不会改变 IC，只会改变分组收益。
+         把口径写在这里，避免用户拿它和选股页的扣费后数字直接比。 */
+      '<tr><td>口径说明</td><td class="q">IC / 十分组为毛收益，未扣费；扣费口径见选股页</td></tr>' +
+      '</tbody></table>';
+
+    return '<div class="fk-expand-inner">' +
+        say + def +
+        '<div class="grid2">' +
+          '<div><div class="fk-block-title">十分组平均收益（未来 ' + (SEG.horizon || 5) + ' 日）</div>' +
+            groupBars(f.groups) + '</div>' +
+          '<div><div class="fk-block-title">IC 随持有期衰减</div>' +
+            decayBars(f.icDecay, f.decayCaliber) + '</div>' +
+        '</div>' +
+        '<div class="grid2" style="margin-top:16px">' +
+          '<div><div class="fk-block-title">分板块一致性</div>' + segTable(f.name) + '</div>' +
+          '<div><div class="fk-block-title">关键读数</div>' + reads + '</div>' +
+        '</div>' + warn +
+      '</div>';
+  }
+
+  function renderRows() {
+    var tb = document.getElementById('tbody');
+    var rows = visible();
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="11" class="muted" style="padding:18px">当前筛选下没有因子</td></tr>';
+      return;
+    }
+    var html = rows.map(function (f) {
+      var active = (f.name === PICKED);
+      var main = '<tr class="row-main' + (active ? ' active' : '') + '" data-n="' + esc(f.name) + '">' +
+        '<td class="fk-cue"><span class="ar">' + (active ? '▾' : '▸') + '</span></td>' +
+        '<td><div class="nm">' + esc(f.name) + '</div><div class="lb">' + esc(f.label) + '</div></td>' +
+        '<td>' + esc(f.category) + '</td>' +
+        '<td>' + (f.direction > 0 ? '越大越好' : '越小越好') + '</td>' +
+        '<td>' + sgn(f.ic, 4) + '</td>' +
+        '<td style="font-weight:' + (isNum(f.tNw) && Math.abs(f.tNw) >= 2 ? '800' : '500') + '">' + sgn(f.tNw, 2) + '</td>' +
+        '<td>' + fx(f.qNw, 3) + '</td>' +
+        '<td>' + sgn(f.mono, 2) + '</td>' +
+        '<td class="' + rcls(f.lsAnnual) + '">' + pc(f.lsAnnual) + '</td>' +
+        '<td>' + fx(f.turnover, 2) + '</td>' +
+        '<td><span class="fk-badge ' + (BADGE[f.verdict] || 'fk-b-bad') + '">' + esc(f.verdict) + '</span></td>' +
+      '</tr>';
+      if (active) {
+        main += '<tr class="fk-expand" data-for="' + esc(f.name) + '"><td colspan="11">' +
+                '<div class="fk-expand-bar">▾ 正在看 <b>' + esc(f.name) + '</b> · ' + esc(f.label) +
+                ' —— 再点这一行收起</div>' +
+                detailHtml(f) + '</td></tr>';
+      }
+      return main;
+    }).join('');
+    tb.innerHTML = html;
+
+    tb.querySelectorAll('tr.row-main').forEach(function (tr) {
+      tr.onclick = function () {
+        var n = tr.dataset.n;
+        PICKED = (PICKED === n) ? null : n;   /* 再点一次收起 */
+        renderRows();
+        renderDetailIntoView();
+      };
+    });
+    renderHint();
+  }
+
+  /* 展开后确保详情在视口内：否则用户会以为"点了没反应" */
+  function renderDetailIntoView() {
+    if (!PICKED) return;
+    var el = document.querySelector('tr.fk-expand[data-for="' + PICKED + '"]');
+    if (!el) return;
+    var r = el.getBoundingClientRect();
+    var h = window.innerHeight || document.documentElement.clientHeight;
+    /* 顶部栏大约占 60px，留出余量 */
+    if (r.top < 60 || r.bottom > h) {
+      var top = el.getBoundingClientRect().top + (window.pageYOffset || 0) - 70;
+      window.scrollTo({ top: top, behavior: 'smooth' });
+    }
+  }
+
+  function groupBars(groups) {
+    if (!groups || !groups.length) return '<div class="muted" style="font-size:12px">无分组数据</div>';
+    var vals = groups.map(function (g) { return g.mean || 0; });
+    var max = Math.max.apply(null, vals.map(Math.abs).concat([1e-9]));
+    return '<div class="fk-bars">' + groups.map(function (g, i) {
+      var v = g.mean || 0;
+      var h = Math.max(2, Math.abs(v) / max * 88);
+      var cls = v >= 0 ? 'pos' : 'neg';
+      return '<div class="fk-bar" title="第 ' + (i + 1) + ' 组 平均 ' + pc(v) + '">' +
+             '<i class="' + cls + '" style="height:' + h + 'px"></i>' +
+             '<span>' + (i + 1) + '</span></div>';
+    }).join('') + '</div>' +
+    '<div class="muted" style="font-size:11.5px;margin-top:6px">' +
+      '把股票按这个指标分成 10 组，第 1 组是按登记方向"最该买"的那组。' +
+      '柱高按绝对值缩放，红涨绿跌。理想情况是从第 1 组到第 10 组依次变矮。</div>';
+  }
+
+  function decayBars(decay, caliber) {
+    var keys = Object.keys(decay || {});
+    if (!keys.length) return '<div class="muted" style="font-size:12px">无衰减数据</div>';
+    keys.sort(function (a, b) { return Number(a) - Number(b); });
+    var vals = keys.map(function (k) { return decay[k] || 0; });
+    var max = Math.max.apply(null, vals.map(Math.abs).concat([1e-9]));
+    return '<div class="fk-bars">' + keys.map(function (k) {
+      var v = decay[k] || 0;
+      var h = Math.max(2, Math.abs(v) / max * 88);
+      var cb = (caliber && caliber[k]) ? caliber[k] : '';
+      return '<div class="fk-bar" title="持有 ' + k + ' 日 IC ' + sgn(v, 4) + '">' +
+             '<i class="' + (v >= 0 ? 'pos' : 'neg') + '" style="height:' + h + 'px"></i>' +
+             '<span>' + k + '日' + (cb === '日内' ? '*' : '') + '</span></div>';
+    }).join('') + '</div>' +
+    '<div class="muted" style="font-size:11.5px;margin-top:6px">' +
+      '横轴是持有几天。柱子一直高说明信号持久，快速变矮说明只管一两天。' +
+      '标 * 的是日内口径（当天买当天卖），与长周期不可直接比。</div>';
+  }
+
+  function segTable(name) {
+    var rows = SEG.rows.filter(function (r) { return r.factor === name; });
+    if (!rows.length) return '<div class="muted" style="font-size:12px">该因子未纳入分板块对照</div>';
+    var order = ['全市场'].concat(SEG.pools);
+    rows.sort(function (a, b) { return order.indexOf(a.pool) - order.indexOf(b.pool); });
+    return '<table class="fk-seg"><thead><tr><th>板块</th><th>IC 均值</th><th>t 值</th><th>天数</th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        var mark = (isNum(r.tNw) && Math.abs(r.tNw) >= 2) ? ' ●' : '';
+        return '<tr><td>' + esc(r.pool) + '</td><td>' + sgn(r.ic, 4) + mark +
+               '</td><td>' + sgn(r.tNw, 2) + '</td><td>' + (r.nDays || '—') + '</td></tr>';
+      }).join('') + '</tbody></table>' +
+      '<div class="muted" style="font-size:11.5px;margin-top:6px">● 表示该板块内 |t| ≥ 2。' +
+      '各板块 IC <b>同号</b>说明信号方向一致、可以全市场用；若正负混杂，说明它只在某些板块有效。</div>';
+  }
+
+  function renderMetricDl(help) {
+    var order = ['ic', 't', 'q', 'mono', 'ls', 'turnover'];
+    var names = { ic: 'IC 均值', t: 't 值', q: 'q 值', mono: '十组单调性', ls: '多空年化', turnover: '换手' };
+    document.getElementById('metricDl').innerHTML = order.map(function (k) {
+      if (!help || !help[k]) return '';
+      return '<dt>' + esc(names[k]) + '</dt><dd>' + esc(help[k]) + '</dd>';
+    }).join('');
+  }
+
+  /* 支持 ?open=因子名 直接打开某一行 —— 既能分享「你看这个因子」的链接，
+     也让「点击到底有没有反应」可以被自动化测试验证（走的是真实 click 事件） */
+  function openFromUrl() {
+    var name = '';
+    try { name = (new URLSearchParams(location.search)).get('open') || ''; } catch (e) { }
+    if (!name) return;
+    var tr = document.querySelector('tr.row-main[data-n="' + name + '"]');
+    if (tr) tr.click();
+  }
+
+  function load() {
+    document.getElementById('fkStatus').textContent = '加载中…';
+    fetch('/api/factors')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d.ok) {
+          document.getElementById('fkStatus').textContent = '不可用';
+          document.getElementById('tbody').innerHTML =
+            '<tr><td colspan="11" class="muted" style="padding:18px">' +
+            esc(d.message || '因子数据不可用') + '<br><span style="font-size:12px">' +
+            esc(d.hint || '') + '</span></td></tr>';
+          return;
+        }
+        ALL = (d.factors || []).slice().sort(function (a, b) {
+          return Math.abs(b.tNw || 0) - Math.abs(a.tNw || 0);
+        });
+        SEG = d.segments || SEG;
+        SEG.pools = (SEG.pools && SEG.pools.length) ? SEG.pools : Object.keys((SEG.size || {}));
+        /* 状态行 = 「多少因子 · 持有期」+ 三段式新鲜度 + 4 态徽标（两页共用 freshness.js）。
+           刻意**不再写**「数据更新于 {文件生成时刻}」：那是 JSON 文件的生成时刻，
+           不是「数据算到哪一天」。用户会把「昨晚导出的文件」读成「数据更新到昨晚」，
+           而真正能回答这个问题的只有 `freshness.dataThrough`。
+           同理，这里也不做任何日期推算（T05 硬规则 2）。 */
+        var fresh = d.freshness || null;
+        var head = ALL.length + ' 个因子 · 持有期 ' + (d.meta.horizon || '—') + ' 日';
+        document.getElementById('fkStatus').innerHTML = esc(head) + ' · ' +
+          (window.fkFresh ? window.fkFresh.html(fresh, { evalAsOf: d.evalAsOf })
+            : '<span class="fk-fline">新鲜度未知（freshness.js 未加载）</span>');
+        /* 过期 / 失败时在**表格上方**插一条独立横幅；不混进 caveatList ——
+           那个列表讲的是「因子语义的边界」，数据新鲜度是另一件事，
+           混在一起以后谁都不敢改其中任何一条。 */
+        var freshBanner = document.getElementById('fkFreshBanner');
+        if (freshBanner) {
+          freshBanner.innerHTML = window.fkFresh ? window.fkFresh.bannerHtml(fresh) : '';
+        }
+        document.getElementById('caveatList').innerHTML =
+          (d.caveats || []).map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('');
+        renderMetricDl(d.metricHelp);
+        renderKpi(d);
+        renderFilters();
+        /* 默认不展开：默认展开第一行会让用户以为「详情固定长在这里」，
+           点别的行时内容插到下方反而像没反应。让用户自己点，反馈才明确。 */
+        PICKED = null;
+        renderRows();
+        openFromUrl();
+      })
+      .catch(function (e) {
+        document.getElementById('tbody').innerHTML =
+          '<tr><td colspan="11" class="muted" style="padding:18px">请求失败：' + esc(e.message) + '</td></tr>';
+      });
+  }
+
+  document.getElementById('filters').querySelectorAll('.f').forEach(function (el) {
+    el.onclick = function () {
+      document.querySelectorAll('#filters .f').forEach(function (x) { x.classList.remove('active'); });
+      el.classList.add('active');
+      FILTER = el.dataset.f;
+      /* 换筛选后，若当前选中的因子不在结果里，就清掉，避免"看不见详情" */
+      var vis = visible().map(function (x) { return x.name; });
+      if (PICKED && vis.indexOf(PICKED) < 0) PICKED = null;
+      renderRows();
+    };
+  });
+  document.getElementById('q').oninput = function (e) {
+    QUERY = e.target.value.trim().toLowerCase();
+    var vis = visible().map(function (x) { return x.name; });
+    if (PICKED && vis.indexOf(PICKED) < 0) PICKED = null;
+    renderRows();
+  };
+
+  load();
+</script>
+</body>
+</html>

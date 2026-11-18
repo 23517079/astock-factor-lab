@@ -1,0 +1,16 @@
+{
+  "name": "astock-analyst",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A 股分析工具：真实行情 + 五维因子 + 大模型结论",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "mock": "node tools/mock-llm.js",
+    "test": "node tests/engine.test.js && node tests/indicators.test.js && node tests/llm.test.js && node tests/ui.test.js && node tests/e2e.test.js",
+    "cli": "node cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

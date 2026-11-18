@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>仪表盘 · A 股分析终端</title>
+<link rel="stylesheet" href="/milo.css">
+</head>
+<body class="milo">
+
+<div class="m-wrap">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="avatar">🤖</div>
+    <h1>A 股分析终端 <span class="badge">MILO</span></h1>
+    <p class="sub">五维因子 · 策略扫描 · ETF 监控 · 行业强度，一个终端全部搞定</p>
+    <div class="searchbox">
+      <input id="codeInput" placeholder="输入 6 位股票代码，如 600519 / 000001" maxlength="6" inputmode="numeric">
+      <button id="goBtn">匹配标的</button>
+    </div>
+    <div class="helptext">回车或点击「匹配标的」进入个股深度分析；下面是今日市场焦点与行业强度速览</div>
+    <div id="selArea"></div>
+  </section>
+
+  <!-- 功能卡 -->
+  <div class="twin">
+    <a class="acard blue" href="analysis.html">
+      <div class="icbox">🔍</div>
+      <h3>个股深度分析</h3>
+      <p>五维因子 + 中美联动 + 大模型研判</p>
+      <span class="arrow">→</span>
+    </a>
+    <a class="acard orange" href="strategy.html">
+      <div class="icbox">📡</div>
+      <h3>策略扫描</h3>
+      <p>6 大选股策略 · 全市场 5000+ 只 · 轻量回测</p>
+      <span class="arrow">→</span>
+    </a>
+    <a class="acard blue" href="portfolio.html">
+      <div class="icbox">💼</div>
+      <h3>个人持仓分析</h3>
+      <p>实时盈亏 + 集中度风险 + 策略信号叠加</p>
+      <span class="arrow">→</span>
+    </a>
+    <a class="acard orange" href="us.html">
+      <div class="icbox">🌎</div>
+      <h3>美股联动</h3>
+      <p>隔夜美股 → A 股次日：联动还是背离</p>
+      <span class="arrow">→</span>
+    </a>
+  </div>
+
+  <!-- 今日市场焦点 -->
+  <div class="m-section-title"><span class="ic">🔥</span>今日市场焦点（行业领涨股）</div>
+  <div id="focus" class="chips"><div class="loading">加载中…</div></div>
+
+  <!-- 行业强度速览 -->
+  <div class="m-section-title"><span class="ic">🏭</span>行业强度榜（Top 10）</div>
+  <div id="topInd" class="chips"><div class="loading">加载中…</div></div>
+
+</div>
+
+<script src="/nav.js"></script>
+<script>
+  MiloNav.mount('dashboard');
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function pctText(v) {
+    if (v == null || isNaN(v)) return '--';
+    return (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%';
+  }
+  function cls(v) { return v == null || isNaN(v) ? '' : (v >= 0 ? 'up' : 'down'); }
+
+  function goto(code) {
+    code = String(code || '').trim();
+    if (!/^\d{6}$/.test(code)) { toast('请输入 6 位数字代码'); return; }
+    location.href = 'analysis.html?code=' + code;
+  }
+
+  function toast(msg) {
+    var t = document.createElement('div');
+    t.className = 'toast'; t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(function () { t.classList.add('show'); });
+    setTimeout(function () { t.classList.remove('show'); setTimeout(function () { t.remove(); }, 250); }, 1800);
+  }
+
+  // 搜索框
+  var input = document.getElementById('codeInput');
+  document.getElementById('goBtn').onclick = function () { goto(input.value); };
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') goto(input.value); });
+
+  // 加载行业 → 派生焦点 + 强度榜
+  fetch('/api/industry')
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (!d.ok || !d.boards || !d.boards.length) {
+        document.getElementById('focus').innerHTML = '<span class="muted">行业数据暂不可用，请确认网络或稍后重试</span>';
+        document.getElementById('topInd').innerHTML = '<span class="muted">—</span>';
+        return;
+      }
+      var boards = d.boards.slice(0, 12);
+      // 焦点：各行业领涨股
+      var focus = boards.filter(function (b) { return b.leadCode; }).slice(0, 10).map(function (b) {
+        return '<div class="chip" data-code="' + esc(b.leadCode) + '" title="' + esc(b.name) + ' 领涨股">' +
+          '<span class="nm">' + esc(b.leadName || b.leadCode) + '</span>' +
+          '<span class="pc ' + cls(b.leadChangePct) + '">' + pctText(b.leadChangePct) + '</span>' +
+          '<span class="ar">' + esc(b.name) + '</span></div>';
+      }).join('');
+      document.getElementById('focus').innerHTML = focus ||
+        '<span class="muted">暂无可展示的领涨股</span>';
+      document.getElementById('focus').querySelectorAll('.chip').forEach(function (c) {
+        c.onclick = function () { goto(c.dataset.code); };
+      });
+
+      // 行业强度 Top 10
+      document.getElementById('topInd').innerHTML = boards.map(function (b) {
+        return '<div class="chip" data-ind="' + esc(b.id) + '">' +
+          '<span class="nm">' + esc(b.name) + '</span>' +
+          '<span class="pc ' + cls(b.changePct) + '">' + pctText(b.changePct) + '</span></div>';
+      }).join('');
+      document.getElementById('topInd').querySelectorAll('.chip').forEach(function (c) {
+        c.onclick = function () { location.href = 'industry.html#' + c.dataset.ind; };
+      });
+    })
+    .catch(function (e) {
+      document.getElementById('focus').innerHTML = '<span class="muted">行业接口异常：' + esc(e.message) + '</span>';
+      document.getElementById('topInd').innerHTML = '<span class="muted">—</span>';
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "llm": {
+    "baseUrl": "https://api.openai.com/v1",
+    "model": "gpt-4o-mini",
+    "apiKey": "在此填入你的密钥，或改用环境变量 ASTOCK_LLM_API_KEY",
+    "apiKeyHeader": "Authorization",
+    "timeoutMs": 90000,
+    "maxRetries": 2,
+    "retryBaseDelayMs": 1200,
+    "temperature": 0.2,
+    "maxTokens": 4000,
+    "jsonMode": true
+  },
+  "analysis": {
+    "codes": ["600519"],
+    "klineLimit": 120,
+    "concurrency": 2,
+    "extraContext": ""
+  },
+  "news": {
+    "keywords": {
+      "600519": ["白酒", "消费"]
+    }
+  },
+  "output": {
+    "dir": "out",
+    "jsonFile": "analysis-results.json",
+    "textFile": "analysis-report.md",
+    "saveFactorDump": true
+  }
+}

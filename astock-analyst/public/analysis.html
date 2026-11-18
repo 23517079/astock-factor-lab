@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>个股深度分析 · A 股分析终端</title>
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/nav.css">
+<style>
+  /* ============================================================
+     把原深色工作台整体切换为 Milo 浅色主题。
+     style.css 本身全部走 CSS 变量，所以这里只覆盖 :root 即可整体翻白，
+     再针对少数「硬编码深色」的组件做定点修补。
+     ============================================================ */
+  :root {
+    --bg: #f4f6fb;
+    --bg-2: #ffffff;
+    --bg-3: #f8fafd;
+    --bg-4: #eef2f9;
+    --line: #eef1f6;
+    --line-2: #e3e8f0;
+    --tx: #1a2233;
+    --tx-2: #5a6b85;
+    --tx-3: #95a0b5;
+    --blue: #2f6bff;
+    --blue-dim: #e8efff;
+    --up: #e64545;
+    --down: #13a463;
+    --warn: #d97706;
+    --warn-dim: #fff4e0;
+    --danger: #dc2626;
+    --ok: #13a463;
+    --radius: 14px;
+  }
+
+  /* 顶部：全局导航 + 本地标签子栏 */
+  .topbar {
+    position: static; background: #fff;
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar .brand, .topbar-right { display: none; }
+  .topbar .tabs { justify-content: center; }
+  body { padding-top: 0; background: var(--bg); color: var(--tx); }
+
+  /* 主按钮：蓝底白字 */
+  button.primary { color: #fff; border-color: var(--blue); }
+  button.primary:hover:not(:disabled) { background: #1f57d6; border-color: #1f57d6; }
+  button.danger { color: #b91c1c; border-color: #f7c9c9; background: #fff5f5; }
+  button.danger:hover:not(:disabled) { background: #ffecec; }
+  .help:hover { background: var(--blue); color: #fff; }
+
+  /* 提示气泡 / toast */
+  .help[data-tip]:hover::after {
+    background: #fff; border-color: var(--line-2); color: var(--tx);
+    box-shadow: 0 10px 28px rgba(28, 49, 92, .18);
+  }
+  #toast { background: #fff; border-color: var(--line-2); color: var(--tx); box-shadow: 0 10px 30px rgba(28, 49, 92, .16); }
+  #toast.bad { border-color: #f7c9c9; color: #b91c1c; }
+  #toast.ok { border-color: #bfe9d4; color: #0f7a45; }
+
+  /* 标的胶囊 */
+  .chip { background: #fff; }
+  .chip:hover { border-color: #c9d6ea; }
+  .chip.on { background: var(--blue-dim); border-color: var(--blue); }
+  .chip.on .c-code { color: var(--blue); }
+  .chip .x:hover { background: #ffecec; color: #dc2626; }
+
+  /* 日志 / 标签 / 横幅 */
+  .log .ok { color: #0f7a45; }
+  .log .err { color: #b91c1c; }
+  .log .info { color: var(--blue); }
+  .v-买入, .v-加仓 { background: #fff0f0; color: #c62828; border-color: #f7c9c9; }
+  .v-持有 { background: #eafaf1; color: #0f7a45; border-color: #bfe9d4; }
+  .v-减仓 { background: #eaf1ff; color: #1d4ed8; border-color: #c7dbff; }
+  .v-观望 { background: #fff7e8; color: #a45b00; border-color: #f5ddb0; }
+  .tag.ok { color: #0f7a45; border-color: #bfe9d4; background: #eafaf1; }
+  .tag.warn { color: #a45b00; border-color: #f5ddb0; background: #fff7e8; }
+  .tag.bad { color: #b91c1c; border-color: #f7c9c9; background: #fff0f0; }
+  .banner.info { background: #eff4ff; border-color: #c7dbff; color: #1d4ed8; }
+  .banner.warn { background: #fff7e8; border-color: #f5ddb0; color: #a45b00; }
+  .banner.bad { background: #fff0f0; border-color: #f7c9c9; color: #b91c1c; }
+  .banner.ok { background: #eafaf1; border-color: #bfe9d4; color: #0f7a45; }
+  .doc code { color: #1d4ed8; background: #eff4ff; border-color: #dbe7ff; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="brand-dot"></span>A 股分析工具</div>
+  <div class="tabs">
+    <button class="tab active" data-view="analyze">分析</button>
+    <button class="tab" data-view="watch">标的</button>
+    <button class="tab" data-view="settings">设置</button>
+    <button class="tab" data-view="history">记录</button>
+    <button class="tab" data-view="doc">说明</button>
+  </div>
+  <div class="topbar-right">
+    <span id="keyPill" class="pill"><span class="dot"></span>检查中</span>
+    <span id="clock"></span>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ============ 分析 ============ -->
+<div class="view active" id="view-analyze">
+  <h1>分析</h1>
+  <p class="sub">选好标的，点一个按钮。数据是真实行情，结论由大模型基于五维因子生成。</p>
+
+  <div id="keyBanner"></div>
+
+  <div class="card">
+    <div class="row between" style="margin-bottom:14px">
+      <h2 style="margin:0">要分析的标的
+        <span class="help" data-tip="在这里勾选本次要分析的股票。想长期保留的标的去「标的」页管理，那里改的是默认清单。">?</span>
+      </h2>
+      <button class="sm ghost" onclick="go('watch')">管理标的</button>
+    </div>
+    <div class="chips" id="pickChips"></div>
+
+    <div class="row" style="margin-top:18px; padding-top:16px; border-top:1px solid var(--line)">
+      <button class="primary" id="btnRun" onclick="startAnalyze()">开始分析</button>
+      <button id="btnRunNoLlm" onclick="startAnalyze(true)">不调模型，只跑数据</button>
+      <span class="help" data-tip="「不调模型」只采集数据并计算因子，结论由本机规则生成。不消耗任何模型额度，适合先确认数据能不能取到。">?</span>
+      <span class="muted" style="margin-left:auto;font-size:12px" id="runHint"></span>
+    </div>
+  </div>
+
+  <div class="card" id="progressCard" style="display:none">
+    <div class="progress-head">
+      <span class="spin" id="progSpin"></span>
+      <span style="font-size:13px" id="progText">准备中…</span>
+      <div class="bar"><i id="progBar"></i></div>
+    </div>
+    <div class="log" id="progLog"></div>
+  </div>
+
+  <div id="resultArea">
+    <div class="empty">
+      <div class="big">还没有分析结果</div>
+      <div>选好标的点「开始分析」，结果会出现在这里</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 标的 ============ -->
+<div class="view" id="view-watch">
+  <h1>标的</h1>
+  <p class="sub">这里维护的是默认分析清单，改完保存后「分析」页会同步。</p>
+
+  <div class="card">
+    <div class="row" style="margin-bottom:14px">
+      <input type="text" id="newCode" placeholder="输入 6 位代码，如 688981" maxlength="6" style="max-width:220px" class="mono">
+      <button onclick="lookupCode()">查一下</button>
+      <span class="help" data-tip="先输入代码点「查一下」，能确认代码对不对、当前价多少，再决定要不要加进清单。">?</span>
+      <span id="lookupResult" class="muted" style="font-size:12px"></span>
+    </div>
+    <div id="watchList"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="primary" onclick="saveWatchlist()">保存清单</button>
+      <span class="muted" style="font-size:12px">保存的是「默认要分析哪些」，每次分析仍可临时勾选</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>资讯检索词
+      <span class="help" data-tip="程序用这些词去东方财富搜新闻，搜到的标题会做词频情绪打分。第一个词搜不到会自动换下一个。留空则用股票简称。">?</span>
+    </h2>
+    <p class="hint" style="margin-bottom:12px">每行一个标的，格式：<code>代码 词1,词2,词3</code>。多个词按顺序尝试，第一个有结果的即采用。</p>
+    <textarea id="kwEditor" rows="8" placeholder="688981 中芯国际,晶圆代工,先进制程&#10;159206 卫星互联网,商业航天"></textarea>
+    <div class="row" style="margin-top:12px">
+      <button onclick="saveKeywords()">保存检索词</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 设置 ============ -->
+<div class="view" id="view-settings">
+  <h1>设置</h1>
+  <p class="sub">配好模型就能用了。密钥只存在本机，不会上传到任何地方。</p>
+
+  <div class="card">
+    <h2>模型接入</h2>
+
+    <div class="grid2">
+      <label class="field">
+        <span>模型名称
+          <span class="help" data-tip="填服务商文档里的模型 ID，例如 deepseek-chat、qwen-plus、gpt-4o-mini。填错会返回 404。">?</span>
+        </span>
+        <input type="text" id="cfgModel" placeholder="deepseek-chat">
+      </label>
+      <label class="field">
+        <span>API 地址
+          <span class="help" data-tip="OpenAI 兼容接口地址，通常以 /v1 结尾。留空则按模型名自动推断。">?</span>
+        </span>
+        <input type="text" id="cfgBaseUrl" placeholder="https://api.deepseek.com/v1">
+      </label>
+    </div>
+
+    <label class="field">
+      <span>API 密钥
+        <span class="help" data-tip="优先读环境变量（更安全）。在这里填写会保存到本机 data/config.json。留空表示不修改已保存的密钥。">?</span>
+      </span>
+      <input type="password" id="cfgApiKey" placeholder="留空则不修改">
+    </label>
+    <div class="hint" id="keyStateHint"></div>
+
+    <details class="note">
+      <summary>用哪个模型？填什么地址？</summary>
+      <table class="dt" style="margin-top:8px">
+        <tr><th>服务商</th><th>模型名称</th><th>API 地址</th></tr>
+        <tr><td>DeepSeek</td><td><code>deepseek-chat</code></td><td><code>https://api.deepseek.com/v1</code></td></tr>
+        <tr><td>阿里通义</td><td><code>qwen-plus</code></td><td><code>https://dashscope.aliyuncs.com/compatible-mode/v1</code></td></tr>
+        <tr><td>月之暗面</td><td><code>moonshot-v1-8k</code></td><td><code>https://api.moonshot.cn/v1</code></td></tr>
+        <tr><td>智谱</td><td><code>glm-4-flash</code></td><td><code>https://open.bigmodel.cn/api/paas/v4</code></td></tr>
+        <tr><td>OpenAI</td><td><code>gpt-4o-mini</code></td><td><code>https://api.openai.com/v1</code></td></tr>
+      </table>
+      <p>以上都走 OpenAI 兼容协议，工具不需要为每家单独适配。</p>
+    </details>
+
+    <details class="note">
+      <summary>用环境变量更安全（推荐）</summary>
+      <p>密钥写进环境变量，就不会落到任何文件里。程序按下面的顺序找，第一个非空即用：</p>
+      <p><code id="envAliasList"></code></p>
+      <p>Windows 设置示例（PowerShell）：</p>
+      <p><code>$env:ASTOCK_LLM_API_KEY = "sk-你的密钥"</code></p>
+      <p>设完重开一个终端窗口或重启本程序，设置页会显示「已就绪」。</p>
+    </details>
+
+    <div class="row" style="margin-top:16px; padding-top:16px; border-top:1px solid var(--line)">
+      <button class="primary" onclick="saveSettings()">保存</button>
+      <button onclick="testModel()">测试连接</button>
+      <span class="help" data-tip="会真的发一次极短的请求到模型服务。成功说明地址、密钥、模型名三者都对。">?</span>
+      <span id="testResult" class="muted" style="font-size:12px"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>运行参数</h2>
+    <div class="grid3">
+      <label class="field">
+        <span>并发数
+          <span class="help" data-tip="同时分析几只。调太高会被数据源限流，建议 1~3。">?</span>
+        </span>
+        <input type="number" id="cfgConcurrency" min="1" max="6">
+      </label>
+      <label class="field">
+        <span>超时（毫秒）
+          <span class="help" data-tip="单次模型请求的等待上限。推理型模型需要更长时间，可调到 180000。">?</span>
+        </span>
+        <input type="number" id="cfgTimeout" min="10000" step="1000">
+      </label>
+      <label class="field">
+        <span>失败重试次数
+          <span class="help" data-tip="只对可恢复错误（限流、服务端 5xx、网络中断）重试。密钥错、模型名错这类不重试，避免白烧额度。">?</span>
+        </span>
+        <input type="number" id="cfgRetries" min="0" max="5">
+      </label>
+    </div>
+    <label class="field">
+      <span>补充背景（可选）
+        <span class="help" data-tip="会追加到提示词末尾，让模型结合你的持仓成本、看好理由等上下文给结论。">?</span>
+      </span>
+      <textarea id="cfgExtra" rows="3" placeholder="例如：持有中芯国际，成本 128 元，长期看好先进制程，能承受 20% 回撤"></textarea>
+    </label>
+    <div class="row">
+      <button onclick="saveRuntime()">保存参数</button>
+    </div>
+  </div>
+
+  <div class="card tight">
+    <div class="row" style="font-size:12px; color:var(--tx-3)">
+      <span>配置文件：<span class="mono" id="cfgPath"></span></span>
+      <span style="margin-left:auto">数据目录：<span class="mono" id="dataPath"></span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 记录 ============ -->
+<div class="view" id="view-history">
+  <h1>记录</h1>
+  <p class="sub">每次分析自动存档。点开可以回看当时的完整结论。</p>
+  <div id="historyList"></div>
+</div>
+
+<!-- ============ 说明 ============ -->
+<div class="view" id="view-doc">
+  <h1>说明</h1>
+  <p class="sub">关于这个工具怎么用、每个数字什么意思、数据从哪来、出错时会怎样，都在这一页。</p>
+
+  <div class="doc">
+    <div class="toc">
+      <a href="#d1">三分钟上手</a>
+      <a href="#d2">结果怎么读</a>
+      <a href="#d3">五个维度</a>
+      <a href="#d4">中美联动</a>
+      <a href="#d5">数据从哪来</a>
+      <a href="#d6">出错时怎么办</a>
+      <a href="#d7">目录与文件</a>
+      <a href="#d8">已知限制</a>
+    </div>
+
+    <h2 id="d1">三分钟上手</h2>
+    <ol>
+      <li><strong>配模型</strong>：打开「设置」，填模型名称、API 地址、密钥，点「测试连接」。显示成功后点「保存」。</li>
+      <li><strong>选标的</strong>：回「分析」页，勾选要看的股票。想加新的去「标的」页。</li>
+      <li><strong>点开始</strong>：点「开始分析」，进度条下面会逐只显示进展，一只大约 3~15 秒。</li>
+      <li><strong>读结论</strong>：结果卡片点开看细节。方向只是参考，真正要盯的是「触发条件」和「失效条件」。</li>
+    </ol>
+    <p>没配密钥也能用：点「不调模型，只跑数据」，能拿到全部客观因子和一份保守的规则结论，不消耗任何额度。</p>
+
+    <details class="note">
+      <summary>连密钥都还没有，想先看看界面长什么样？</summary>
+      <p>项目里带了一个假模型，专门用于这种情况：</p>
+      <ol style="margin:8px 0">
+        <li>在项目目录打开终端，执行 <code>node tools/mock-llm.js</code>，保持窗口开着。</li>
+        <li>回到界面「设置」，填：模型名称 <code>mock-model</code>，API 地址 <code>http://127.0.0.1:8799/v1</code>，密钥随便填几个字符。</li>
+        <li>点「测试连接」，应显示成功。然后就能正常点「开始分析」了。</li>
+      </ol>
+      <p>假模型不会真的分析，它只是把流程跑通、让你看清结果长什么样。等你拿到真密钥，改一下设置就行。</p>
+    </details>
+
+    <h2 id="d2">结果怎么读</h2>
+    <table class="dt">
+      <tr><th>字段</th><th>含义</th></tr>
+      <tr><td>方向</td><td>买入 / 加仓 / 持有 / 减仓 / 观望，五选一。这是基于当前数据的一个倾向，不是指令。</td></tr>
+      <tr><td>确信度</td><td>0~100。分低说明数据缺口大或因子互相打架，此时方向本身参考价值有限。</td></tr>
+      <tr><td>关键价位</td><td>止损价、止盈价、支撑、压力。都是具体数字，来自近 20/60 日高低点与成交密集区。</td></tr>
+      <tr><td>触发条件</td><td>满足什么情况才执行。条件没到就不动手。</td></tr>
+      <tr><td>失效条件</td><td>出现什么情况这个结论就作废。这是最该盯的一栏。</td></tr>
+      <tr><td>依据链条</td><td>因子 → 结论 → 建议的完整推导。每条都带数值、时间、来源，可以逐条核对。</td></tr>
+      <tr><td>数据完整度</td><td>五个维度里有几个取到了数据。点开能看到具体缺什么。</td></tr>
+    </table>
+    <details class="note">
+      <summary>「不适用」和「缺失」不是一回事</summary>
+      <p>比如 ETF 没有财务报表、没有 PE/PB、没有北向持股，这是标的本身不具备，不是数据没取到。工具把这类标成「不适用」，不会算作数据质量差，也不会因此降低确信度。</p>
+      <p>只有真正该有却没取到的，才算「缺失」。</p>
+    </details>
+
+    <h2 id="d3">五个维度</h2>
+    <table class="dt">
+      <tr><th>维度</th><th>看什么</th></tr>
+      <tr><td>基本面</td><td>最新报告期的营收与净利同比、ROE、毛利率、PE/PB、所属行业。用来判断业绩是在变好还是变差。</td></tr>
+      <tr><td>资金面</td><td>主力资金净流入、融资余额变化、北向持股、成交额与换手。用来判断有没有真金白银在动。</td></tr>
+      <tr><td>技术面</td><td>均线排列、回归斜率、量价形态、支撑压力、成交密集区。趋势判定在拟合度低时会自动降级为「震荡」，避免把噪声当趋势。</td></tr>
+      <tr><td>情绪面</td><td>用新闻标题做词频打分，加上大盘当日表现。这是启发式判断，不是事实结论，看到异常要自己核实原文。</td></tr>
+      <tr><td>宏观与政策</td><td>人民币汇率、原油、黄金。政策取向本工具不接政策文本源，所以明确不做判断，避免编造。</td></tr>
+    </table>
+    <details class="note">
+      <summary>「成交密集区」是什么，为什么比支撑压力有用</summary>
+      <p>把最近 20 天的成交量按价格分档统计，成交量最集中的那一段，就是大部分人的持仓成本区。</p>
+      <p>价格跌回这个区间，容易被套的人会想解套卖出，形成抛压；反过来站稳了这个区间，说明成本盘换手完成。它比单纯的高低点更接近真实的筹码分布。</p>
+    </details>
+
+    <h2 id="d4">中美联动</h2>
+    <p>用美股隔夜表现当先行指标，判断 A 股这只票今天是跟着外盘走，还是走自己的逻辑。判定规则：</p>
+    <table class="dt">
+      <tr><th>判定</th><th>条件</th><th>怎么理解</th></tr>
+      <tr><td>联动</td><td>方向相同，幅度差小于 3 个百分点</td><td>外盘是主要驱动，隔夜情绪传导有效</td></tr>
+      <tr><td>联动（幅度背离）</td><td>方向相同，但幅度差 3 个百分点以上</td><td>外盘有影响，但本土资金或基本面在起作用</td></tr>
+      <tr><td>背离</td><td>方向相反</td><td>这只票短期由本土因素主导，不要照外盘方向外推</td></tr>
+    </table>
+    <p>四条传导路径都会列出来：估值传导（中期慢变量）、情绪传导（次日开盘半小时最有效）、外资偏好（看汇率与成交额）、产业链映射（龙头对应 A 股订单预期，时滞以周计）。</p>
+
+    <h2 id="d5">数据从哪来</h2>
+    <table class="dt">
+      <tr><th>数据</th><th>来源</th></tr>
+      <tr><td>A 股行情、日 K</td><td>新浪财经 → 东方财富 → 腾讯（逐级备源）</td></tr>
+      <tr><td>业绩、估值、两融、北向、资金流向</td><td>东方财富公开接口</td></tr>
+      <tr><td>行业分类</td><td>东方财富 → 新浪行业表 → 估值接口板块名</td></tr>
+      <tr><td>新闻</td><td>东方财富资讯搜索</td></tr>
+      <tr><td>美股指数、中概股、科技龙头</td><td>新浪财经 → 腾讯</td></tr>
+      <tr><td>汇率、原油、黄金</td><td>新浪财经</td></tr>
+    </table>
+    <p>每个接口都有备用源，主源失败会自动切换，并在结果里标注实际用的是哪个源。取不到就显示「无数据」，绝不用估算值顶替。</p>
+
+    <h2 id="d6">出错时怎么办</h2>
+    <h3>模型调用失败</h3>
+    <table class="dt">
+      <tr><th>情况</th><th>工具的处理</th></tr>
+      <tr><td>限流 429、服务端 5xx、网络中断</td><td>自动等一会儿重试，次数在设置里配</td></tr>
+      <tr><td>密钥错 401/403</td><td>不重试，直接提示检查密钥</td></tr>
+      <tr><td>模型名或地址错 400/404</td><td>不重试，直接提示检查模型名与地址</td></tr>
+      <tr><td>配额不足</td><td>不重试，提示充值</td></tr>
+    </table>
+    <p>重试都失败后，会用已经采集到的客观数据生成一份规则结论，字段完整，并标明「这是降级结果，未经模型推理」。此时不要据此调仓。</p>
+
+    <h3>模型输出格式不对</h3>
+    <p>模型没按格式返回是常事。工具会逐级尝试修复：直接解析 → 从代码块里抠 → 从混杂文字里截取 → 修尾逗号与引号 → 逐字段正则提取。全都失败才转规则降级。任何一级都不会缺字段，批量任务不会因此断链。</p>
+
+    <h3>数据取不到</h3>
+    <p>该维度标为不可用，在结果里写清楚缺什么，对应维度记 0 分（中性），确信度会相应下降。不会用假数字充数。</p>
+
+    <h2 id="d7">目录与文件</h2>
+    <p>你日常只会碰两个东西：双击 <code>start.bat</code> 启动，在界面里操作。其余文件不需要动。</p>
+    <table class="dt">
+      <tr><th>路径</th><th>是什么</th></tr>
+      <tr><td><code>start.bat</code></td><td>双击启动（Windows）。关掉黑窗口即停止服务。</td></tr>
+      <tr><td><code>server.js</code></td><td>本地服务，界面和接口都由它提供。</td></tr>
+      <tr><td><code>public/</code></td><td>界面三个文件：页面、脚本、样式。</td></tr>
+      <tr><td><code>lib/</code></td><td>取数、算因子、调模型、解析输出的核心代码。</td></tr>
+      <tr><td><code>data/config.json</code></td><td>你的设置都在这里。删掉会恢复默认示例。</td></tr>
+      <tr><td><code>data/history/</code></td><td>每次分析自动存档，就是「记录」页看到的内容。</td></tr>
+      <tr><td><code>tools/mock-llm.js</code></td><td>没密钥时用的假模型，想先看效果就运行它。</td></tr>
+      <tr><td><code>cli.js</code></td><td>命令行模式，给批量或定时任务用，日常不需要碰。</td></tr>
+      <tr><td><code>tests/</code></td><td>自检脚本，想确认代码没坏可以跑一下。</td></tr>
+    </table>
+    <p>所有数据都在 <code>data/</code> 一个目录里。备份就复制它，换电脑也只搬它。</p>
+
+    <h2 id="d8">已知限制</h2>
+    <ul>
+      <li>数据来自公开接口，不是交易所直连；盘后拿到的就是当天收盘快照，不是实时逐笔。</li>
+      <li>北向持股是季度披露，有明显时滞，不能当当日流向看。</li>
+      <li>情绪分是新闻标题词频的启发式打分，属于媒体二手信息，看到异常请自己核实原文。</li>
+      <li>政策取向不做判断，因为没接政策文本源。宁可不说，也不编。</li>
+      <li>PE 历史分位部分接口不返回，此时会如实写「接口未提供」，不假装有分位。</li>
+      <li>本工具不预测涨跌、不自动下单、不承诺收益。它只负责把客观数据整理清楚，把逻辑链条摆出来，决策和后果由你自己承担。</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<div id="toast"></div>
+
+<script src="/analysis.js"></script>
+<script src="/nav.js"></script>
+<script>
+  MiloNav.mount('analysis');
+</script>
+</body>
+</html>

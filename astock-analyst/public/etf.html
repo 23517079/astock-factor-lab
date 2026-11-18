@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ETF 监控 · A 股分析终端</title>
+<link rel="stylesheet" href="/milo.css">
+</head>
+<body class="milo">
+
+<div class="m-wrap">
+
+  <div class="m-section-title" style="margin-top:8px">
+    <span class="ic">💹</span>ETF 实时监控
+    <span id="etfStatus" class="muted" style="font-weight:500;font-size:13px;margin-left:8px"></span>
+  </div>
+  <p class="muted" style="margin:-4px 0 14px">核心宽基 ETF 实时行情（腾讯行情）。份额 / 净申购依赖东财接口，本环境若未放行则显示「—」。</p>
+
+  <div class="bar-actions">
+    <button class="btn-run" style="width:auto;padding:9px 18px" id="btnRefresh">手动刷新</button>
+    <label style="font-size:13px;color:var(--m-tx2);display:flex;align-items:center;gap:6px;cursor:pointer">
+      <input type="checkbox" id="autoChk" checked> 每 12 秒自动刷新
+    </label>
+  </div>
+
+  <div class="etf-grid" id="grid"><div class="loading">加载中…</div></div>
+</div>
+
+<script src="/nav.js"></script>
+<script>
+  MiloNav.mount('etf');
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function cls(v) { return v == null || isNaN(v) ? '' : (v >= 0 ? 'up' : 'down'); }
+  function pctText(v) { if (v == null || isNaN(v)) return '--'; return (v >= 0 ? '+' : '') + Number(v).toFixed(2) + '%'; }
+  function fmtAmount(v) {
+    if (v == null || isNaN(v)) return '—';
+    if (v >= 1e8) return (v / 1e8).toFixed(2) + ' 亿';
+    if (v >= 1e4) return (v / 1e4).toFixed(2) + ' 万';
+    return Number(v).toFixed(0);
+  }
+  function bigNum(v) {
+    if (v == null || isNaN(v)) return '—';
+    if (v >= 1e8) return (v / 1e8).toFixed(2) + ' 亿';
+    if (v >= 1e4) return (v / 1e4).toFixed(2) + ' 万';
+    return Number(v).toFixed(0);
+  }
+
+  function render(data) {
+    var grid = document.getElementById('grid');
+    if (!data || !data.ok || !data.cards || !data.cards.length) {
+      grid.innerHTML = '<div class="loading">暂无 ETF 数据：' + esc((data && data.errors && data.errors.join('；')) || '未知') + '</div>';
+      return;
+    }
+    grid.innerHTML = data.cards.map(function (c) {
+      var upCls = cls(c.changePct);
+      return '<div class="etf-card' + (c.code === '510050' || c.code === '510300' ? ' national' : '') + '">' +
+        '<div class="nm">' + esc(c.name) + ' <span class="muted" style="font-weight:600;font-size:12px">' + esc(c.code) + '</span></div>' +
+        '<div class="sub">实时价 · ' + esc(c.source || '') + (c.asOf ? ' · ' + esc(c.asOf) : '') + '</div>' +
+        '<div class="price ' + upCls + '">' + (c.price == null ? '—' : Number(c.price).toFixed(3)) +
+          ' <span style="font-size:14px;font-weight:700">' + pctText(c.changePct) + '</span></div>' +
+        '<div class="fields">' +
+          '<div><span class="k">成交额</span> ' + fmtAmount(c.amount) + '</div>' +
+          '<div><span class="k">份额/规模</span> ' + bigNum(c.shares) + '</div>' +
+          '<div><span class="k">净申购</span> ' + bigNum(c.netSubscribe) + '</div>' +
+          '<div><span class="k">更新</span> ' + esc(c.asOf || '—') + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+    document.getElementById('etfStatus').textContent = '更新于 ' + esc(data.asOf || '') +
+      (data.note ? ' · ' + esc(data.note) : '');
+  }
+
+  function load() {
+    document.getElementById('etfStatus').textContent = '加载中…';
+    fetch('/api/etf')
+      .then(function (r) { return r.json(); })
+      .then(render)
+      .catch(function (e) { render({ ok: false, errors: [e.message] }); });
+  }
+
+  document.getElementById('btnRefresh').onclick = load;
+  var autoChk = document.getElementById('autoChk');
+  var timer = null;
+  function syncAuto() {
+    if (timer) { clearInterval(timer); timer = null; }
+    if (autoChk.checked) timer = setInterval(load, 12000);
+  }
+  autoChk.onchange = syncAuto;
+
+  load();
+  syncAuto();
+</script>
+</body>
+</html>

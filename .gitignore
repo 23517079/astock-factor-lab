@@ -1,0 +1,76 @@
+# ============================================================
+# 仓库只放「代码 + 结论」。原始数据留在本地，绝不入库。
+# ============================================================
+
+# —— 数据与缓存（体积大，25G 级）——
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.npy
+*.npz
+*.parquet
+*.pkl
+*.zip
+*.7z
+
+# 面板缓存与逐因子持久化（可重建，无需版本化）
+sequoia-service/data/panel_cache/
+sequoia-service/data/factor_ts/
+sequoia-service/data/_pre_rerun_backup_*/
+sequoia-service/data/_bench.db
+
+# —— 产物目录：默认全排除，下方白名单按需放行 ——
+sequoia-service/data/*
+!sequoia-service/data/factor_run.json
+!sequoia-service/data/factor_score.json
+!sequoia-service/data/factor_rolling.json
+!sequoia-service/data/factor_api.json
+!sequoia-service/data/factor_eval.json
+!sequoia-service/data/picks.json
+!sequoia-service/data/picks_recent.json
+!sequoia-service/data/scan_results.json
+!sequoia-service/data/panel_check.json
+!sequoia-service/data/segment_ic.json
+!sequoia-service/data/universe.json
+!sequoia-service/data/scheduler_state.json
+!sequoia-service/data/backtest_results.json
+
+# —— 隐私：真实持仓、分析历史、本地配置 ——
+astock-analyst/data/portfolio.json
+astock-analyst/data/history/
+astock-analyst/data/config.json
+astock-analyst/data/out/
+
+# —— 密钥与环境 ——
+.env
+.env.local
+*.pem
+
+# —— 第三方源码与参考资料（非本人作品，不入库）——
+01_参考资料/
+03_早期版本/
+02_我的记录/
+
+# —— 私人材料：工作记忆、求职笔记 ——
+.workbuddy/
+AI转岗*.md
+
+# —— 备份与临时文件 ——
+*.bak
+*.bak-*
+*.bak_*
+*.orphan-*
+*~
+*.tmp
+nul
+新建 文本文档.txt
+
+# —— 运行时垃圾 ——
+__pycache__/
+*.pyc
+node_modules/
+.pytest_cache/
+.DS_Store
+Thumbs.db

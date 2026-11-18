@@ -1,0 +1,123 @@
+{
+  "running": null,
+  "runId": "20261117T202255",
+  "startedAt": "2026-11-17T20:22:55",
+  "finishedAt": "2026-11-17T20:35:08",
+  "targetDates": [
+    "2026-11-17"
+  ],
+  "ok": true,
+  "partial": false,
+  "warnings": [],
+  "cost": 733.5,
+  "error": null,
+  "trigger": "scheduler",
+  "verify": {
+    "ok": true,
+    "checked": 120,
+    "maxRelErr": 5.582338564318965e-08,
+    "mismatch": 0,
+    "axis": {
+      "ok": true,
+      "dates": true,
+      "symbols": true,
+      "mode": "tail",
+      "dateMismatch": 0,
+      "symbolMismatch": 0,
+      "tailPendingDates": 0,
+      "tailPendingSymbols": 0
+    },
+    "cacheSkipped": false,
+    "residualDates": [],
+    "price": {
+      "loaded": true,
+      "cost": 17.4,
+      "horizon": 5,
+      "entry": "s1_open",
+      "dates": 1568,
+      "symbols": 5030
+    },
+    "ts": {
+      "appended": 24,
+      "factors": 24,
+      "skipped": [
+        "2026-11-11",
+        "2026-11-12",
+        "2026-11-13",
+        "2026-11-16",
+        "2026-11-17"
+      ],
+      "reconcile": "ok",
+      "elapsed": 19.66
+    },
+    "rolling": {
+      "n_periods": 70,
+      "skippedFactors": [],
+      "latest": {
+        "tIndex": 1421,
+        "asOf": "2026-11-17",
+        "icCutoff": "2026-11-10",
+        "n_factors": 24,
+        "n_considered": 24,
+        "n_evaluable": 24,
+        "n_selected": 9,
+        "selected": [
+          "max_ret20",
+          "turn20",
+          "vol_ratio5v20",
+          "turn_cv20",
+          "slope20",
+          "dist_low250",
+          "corr_pv20",
+          "obv_slope20",
+          "intraday_ret20"
+        ],
+        "avgIc": -0.0413005413714283,
+        "avgIcSelected": -0.07169681362479256,
+        "avgIcSelectedAdj": -0.008380115060963025
+      },
+      "elapsed": 2.58
+    },
+    "score": {
+      "ok": true,
+      "factors": 9,
+      "picks": 10,
+      "recentOnlyDeprecated": true
+    },
+    "export": {
+      "ok": true,
+      "evalAsOf": "2026-11-15 21:35",
+      "dataThrough": "2026-11-17",
+      "rollingPeriods": 70
+    },
+    "partial": false,
+    "warnings": []
+  },
+  "skipped": null,
+  "staleRunning": {
+    "runId": "20261116T210456",
+    "startedAt": "2026-11-16T21:04:56",
+    "phase": "export",
+    "targetDates": [],
+    "trigger": "scheduler",
+    "pid": 55584,
+    "db": "D:\\program\\投资记录\\sequoia-service\\data\\sequoia_v2.db",
+    "config": {
+      "horizon": 5,
+      "entry": "s1_open",
+      "minStocks": 100,
+      "nwLag": 4,
+      "nGroups": 10,
+      "rollStep": 20,
+      "rollSelectWindow": 120,
+      "warmupBars": 300,
+      "minSymbolsPerDay": 1200,
+      "maxDays": 30,
+      "commitEvery": 20000,
+      "factorTime": "16:10",
+      "top": 10,
+      "weight": "equal"
+    },
+    "lagDays": 0
+  }
+}

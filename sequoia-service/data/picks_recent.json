@@ -1,0 +1,740 @@
+{
+  "generatedAt": "2026-11-16 00:22",
+  "weight": "equal",
+  "horizon": 5,
+  "entry": "s1_open",
+  "factors": [
+    "amihud20",
+    "corr_pv20",
+    "ma_gap60",
+    "max_ret20",
+    "mom60",
+    "turn20",
+    "turn_cv20"
+  ],
+  "factorMeta": {
+    "amihud20": {
+      "label": "Amihud非流动性(20日)",
+      "direction": 1,
+      "what": "平均而言，成交一亿元能把股价推动多少（越大说明越推得动）",
+      "category": "liquidity"
+    },
+    "corr_pv20": {
+      "label": "量价相关(20日)",
+      "direction": -1,
+      "what": "最近 20 天，『价格上涨』和『成交量放大』是不是同步发生（相关系数 -1 到 +1）",
+      "category": "volume_price"
+    },
+    "ma_gap60": {
+      "label": "60日均线乖离",
+      "direction": -1,
+      "what": "现在的股价，比最近 60 天的平均成本高（或低）百分之几",
+      "category": "trend"
+    },
+    "max_ret20": {
+      "label": "20日最大单日涨幅",
+      "direction": -1,
+      "what": "最近 20 天里，单日涨幅最大的那一天涨了多少",
+      "category": "volatility"
+    },
+    "mom60": {
+      "label": "60日动量(跳过近20日)",
+      "direction": 1,
+      "what": "两个月前那三个月里，这只股票累计涨了多少（同样跳开最近一个月）",
+      "category": "momentum"
+    },
+    "turn20": {
+      "label": "20日均成交额(亿元)",
+      "direction": -1,
+      "what": "最近 20 天平均每天成交多少钱（单位：亿元）",
+      "category": "liquidity"
+    },
+    "turn_cv20": {
+      "label": "成交额变异系数(20日)",
+      "direction": -1,
+      "what": "最近 20 天成交额的『忽大忽小』程度（变异系数）",
+      "category": "liquidity"
+    }
+  },
+  "weights": {
+    "amihud20": 0.14285714285714285,
+    "corr_pv20": 0.14285714285714285,
+    "ma_gap60": 0.14285714285714285,
+    "max_ret20": 0.14285714285714285,
+    "mom60": 0.14285714285714285,
+    "turn20": 0.14285714285714285,
+    "turn_cv20": 0.14285714285714285
+  },
+  "clusters": {
+    "amihud20": [
+      "amihud20"
+    ],
+    "corr_pv20": [
+      "corr_pv20"
+    ],
+    "ma_gap60": [
+      "ma_gap60"
+    ],
+    "max_ret20": [
+      "max_ret20"
+    ],
+    "mom60": [
+      "mom60"
+    ],
+    "turn20": [
+      "turn20"
+    ],
+    "turn_cv20": [
+      "turn_cv20"
+    ]
+  },
+  "tmap": {
+    "amihud20": 6.202775274482707,
+    "corr_pv20": -8.748890705363038,
+    "ma_gap60": -7.036677386218595,
+    "max_ret20": -8.481819071458157,
+    "mom60": -2.232420743341621,
+    "turn20": -7.961245095230302,
+    "turn_cv20": -10.214217532508657
+  },
+  "validation": {
+    "n_days": 1399,
+    "ic_mean": 0.07829276305431114,
+    "ic_std": 0.1404960865001741,
+    "icir": 8.704669895129248,
+    "t_naive": 20.843288999223212,
+    "t_nw": 11.288240029322143,
+    "horizon": 5,
+    "entry": "s1_open",
+    "groups": [
+      {
+        "group": 1,
+        "mean": 0.005340109080127563,
+        "annual": 0.3079034342794762
+      },
+      {
+        "group": 2,
+        "mean": 0.005039975008872828,
+        "annual": 0.2883686029448207
+      },
+      {
+        "group": 3,
+        "mean": 0.0043357866763766885,
+        "annual": 0.24365083720962577
+      },
+      {
+        "group": 4,
+        "mean": 0.0037440735264292844,
+        "annual": 0.20725468830904537
+      },
+      {
+        "group": 5,
+        "mean": 0.0033440047973244107,
+        "annual": 0.18324027721697966
+      },
+      {
+        "group": 6,
+        "mean": 0.0025460751691533164,
+        "annual": 0.13673384983892323
+      },
+      {
+        "group": 7,
+        "mean": 0.0025261998519060724,
+        "annual": 0.13559861316932564
+      },
+      {
+        "group": 8,
+        "mean": 0.0017559111696021713,
+        "annual": 0.09244719916468047
+      },
+      {
+        "group": 9,
+        "mean": 0.0007280330571687329,
+        "annual": 0.037360509854624135
+      },
+      {
+        "group": 10,
+        "mean": -0.0010164609752031147,
+        "annual": -0.04996427256510294
+      }
+    ]
+  },
+  "recent": {
+    "amihud20": {
+      "full": {
+        "n_days": 1399,
+        "ic_mean": 0.04852928197268729,
+        "t_nw": 6.20277527589125
+      },
+      "60": {
+        "n_days": 60,
+        "ic_mean": 0.08333199260520961,
+        "t_nw": 2.0493142317458735,
+        "positive_ratio": 0.7
+      },
+      "120": {
+        "n_days": 120,
+        "ic_mean": 0.05621614211518876,
+        "t_nw": 1.680288595326926,
+        "positive_ratio": 0.6083333333333333
+      },
+      "state": "ok",
+      "note": "最近 60 天 IC +0.0833，为全期的 172%——目前仍有效"
+    },
+    "corr_pv20": {
+      "full": {
+        "n_days": 1396,
+        "ic_mean": 0.040237568953264795,
+        "t_nw": 8.748891055037324
+      },
+      "60": {
+        "n_days": 60,
+        "ic_mean": 0.050974758514575995,
+        "t_nw": 3.117680234165072,
+        "positive_ratio": 0.7333333333333333
+      },
+      "120": {
+        "n_days": 120,
+        "ic_mean": 0.05297235867181389,
+        "t_nw": 3.9834195040413274,
+        "positive_ratio": 0.7166666666666667
+      },
+      "state": "ok",
+      "note": "最近 60 天 IC +0.0510，为全期的 127%——目前仍有效"
+    },
+    "ma_gap60": {
+      "full": {
+        "n_days": 1356,
+        "ic_mean": 0.05602883047716122,
+        "t_nw": 7.036676606514713
+      },
+      "60": {
+        "n_days": 60,
+        "ic_mean": 0.052303756593627355,
+        "t_nw": 1.4413325934221815,
+        "positive_ratio": 0.48333333333333334
+      },
+      "120": {
+        "n_days": 120,
+        "ic_mean": 0.06433468900342725,
+        "t_nw": 1.9202430497454155,
+        "positive_ratio": 0.525
+      },
+      "state": "ok",
+      "note": "最近 60 天 IC +0.0523，为全期的 93%——目前仍有效"
+    },
+    "max_ret20": {
+      "full": {
+        "n_days": 1395,
+        "ic_mean": 0.0636522479074734,
+        "t_nw": 8.481844815142482
+      },
+      "60": {
+        "n_days": 60,
+        "ic_mean": 0.10096410187503627,
+        "t_nw": 2.080616176769934,
+        "positive_ratio": 0.6833333333333333
+      },
+      "120": {
+        "n_days": 120,
+        "ic_mean": 0.09469147817684688,
+        "t_nw": 2.203230025558267,
+        "positive_ratio": 0.6583333333333333
+      },
+      "state": "ok",
+      "note": "最近 60 天 IC +0.1010，为全期的 159%——目前仍有效"
+    },
+    "mom60": {
+      "full": {
+        "n_days": 1335,
+        "ic_mean": -0.017204117975517925,
+        "t_nw": -2.2324188974877246
+      },
+      "60": {
+        "n_days": 60,
+        "ic_mean": 0.012792175434852159,
+        "t_nw": 0.4290309717860907,
+        "positive_ratio": 0.5166666666666667
+      },
+      "120": {
+        "n_days": 120,
+        "ic_mean": -0.009047200456572724,
+        "t_nw": -0.2629299137895634,
+        "positive_ratio": 0.5333333333333333
+      },
+      "state": "ok",
+      "note": "最近 60 天 IC +0.0128，为全期的 74%——目前仍有效"
+    },
+    "turn20": {
+      "full": {
+        "n_days": 1396,
+        "ic_mean": 0.06740592784165346,
+        "t_nw": 7.96124511546883
+      },
+      "60": {
+        "n_days": 60,
+        "ic_mean": 0.10797107271999278,
+        "t_nw": 2.24599465566976,
+        "positive_ratio": 0.7166666666666667
+      },
+      "120": {
+        "n_days": 120,
+        "ic_mean": 0.0778541338658578,
+        "t_nw": 1.9236571217861869,
+        "positive_ratio": 0.6083333333333333
+      },
+      "state": "ok",
+      "note": "最近 60 天 IC +0.1080，为全期的 160%——目前仍有效"
+    },
+    "turn_cv20": {
+      "full": {
+        "n_days": 1396,
+        "ic_mean": 0.03542481046741492,
+        "t_nw": 10.214216976100873
+      },
+      "60": {
+        "n_days": 60,
+        "ic_mean": 0.03931869625359544,
+        "t_nw": 2.5959103050438417,
+        "positive_ratio": 0.7166666666666667
+      },
+      "120": {
+        "n_days": 120,
+        "ic_mean": 0.043136275959648876,
+        "t_nw": 3.166364259372658,
+        "positive_ratio": 0.7083333333333334
+      },
+      "state": "ok",
+      "note": "最近 60 天 IC +0.0393，为全期的 111%——目前仍有效"
+    }
+  },
+  "oos": {
+    "ok": true,
+    "split": 0.7,
+    "splitDate": "2025-02-13",
+    "in": {
+      "n_days": 977,
+      "ic_mean": 0.07784944061852239,
+      "ic_std": 0.13311178338318921,
+      "t_nw": 9.989837685606526,
+      "ic_positive_ratio": 0.7277379733879222
+    },
+    "out": {
+      "n_days": 422,
+      "ic_mean": 0.07931912803005903,
+      "ic_std": 0.15642380036257342,
+      "t_nw": 5.584881863328092,
+      "ic_positive_ratio": 0.6848341232227488
+    },
+    "sameSign": true,
+    "shrink": 1.0188785866649754,
+    "verdict": "pass",
+    "comment": "后段与前半段同号，且后段自身 |t|=5.58 ≥ 2，量级为前段的 102%——没有明显过拟合到前半段行情。"
+  },
+  "picks": {
+    "date": "2026-11-13",
+    "picks": [
+      {
+        "symbol": "600165",
+        "name": "宁科生物",
+        "close": 2.57,
+        "score": 0.3947918930149939,
+        "rank": 1,
+        "universe": 5022,
+        "percentile": 0.00019912385503783353,
+        "validFactors": 7,
+        "signal": "买入观察",
+        "reason": "综合分排名 1 / 5022（前 0.0%）",
+        "exitRule": "排名掉出前 16，或综合分转负",
+        "contributions": [
+          {
+            "factor": "max_ret20",
+            "contribution": 0.46415770609318996,
+            "direction": -1
+          },
+          {
+            "factor": "mom60",
+            "contribution": 0.4475580464371497,
+            "direction": 1
+          },
+          {
+            "factor": "corr_pv20",
+            "contribution": 0.4115890083632019,
+            "direction": -1
+          },
+          {
+            "factor": "turn20",
+            "contribution": 0.40840302668259654,
+            "direction": -1
+          },
+          {
+            "factor": "amihud20",
+            "contribution": 0.3829151732377539,
+            "direction": 1
+          },
+          {
+            "factor": "ma_gap60",
+            "contribution": 0.32653876898481216,
+            "direction": -1
+          },
+          {
+            "factor": "turn_cv20",
+            "contribution": 0.3223815213062525,
+            "direction": -1
+          }
+        ]
+      },
+      {
+        "symbol": "603177",
+        "name": "德创环保",
+        "close": 9.11,
+        "score": 0.3783540422899563,
+        "rank": 2,
+        "universe": 5022,
+        "percentile": 0.00039824771007566706,
+        "validFactors": 7,
+        "signal": "买入观察",
+        "reason": "综合分排名 2 / 5022（前 0.0%）",
+        "exitRule": "排名掉出前 16，或综合分转负",
+        "contributions": [
+          {
+            "factor": "turn_cv20",
+            "contribution": 0.4922341696535245,
+            "direction": -1
+          },
+          {
+            "factor": "turn20",
+            "contribution": 0.465352449223417,
+            "direction": -1
+          },
+          {
+            "factor": "amihud20",
+            "contribution": 0.4394663480684986,
+            "direction": 1
+          },
+          {
+            "factor": "corr_pv20",
+            "contribution": 0.4253285543608124,
+            "direction": -1
+          },
+          {
+            "factor": "mom60",
+            "contribution": 0.3781024819855885,
+            "direction": 1
+          },
+          {
+            "factor": "max_ret20",
+            "contribution": 0.2909199522102748,
+            "direction": -1
+          },
+          {
+            "factor": "ma_gap60",
+            "contribution": 0.15707434052757796,
+            "direction": -1
+          }
+        ]
+      },
+      {
+        "symbol": "002700",
+        "name": "万憬能源",
+        "close": 5.41,
+        "score": 0.3710650035645516,
+        "rank": 3,
+        "universe": 5022,
+        "percentile": 0.0005973715651135006,
+        "validFactors": 7,
+        "signal": "买入观察",
+        "reason": "综合分排名 3 / 5022（前 0.1%）",
+        "exitRule": "排名掉出前 16，或综合分转负",
+        "contributions": [
+          {
+            "factor": "turn_cv20",
+            "contribution": 0.48466746316208686,
+            "direction": -1
+          },
+          {
+            "factor": "turn20",
+            "contribution": 0.4209478295499801,
+            "direction": -1
+          },
+          {
+            "factor": "max_ret20",
+            "contribution": 0.3924731182795699,
+            "direction": -1
+          },
+          {
+            "factor": "mom60",
+            "contribution": 0.38150520416333067,
+            "direction": 1
+          },
+          {
+            "factor": "amihud20",
+            "contribution": 0.36459577857427317,
+            "direction": 1
+          },
+          {
+            "factor": "corr_pv20",
+            "contribution": 0.358821186778176,
+            "direction": -1
+          },
+          {
+            "factor": "ma_gap60",
+            "contribution": 0.19444444444444442,
+            "direction": -1
+          }
+        ]
+      },
+      {
+        "symbol": "603182",
+        "name": "嘉华股份",
+        "close": 11.48,
+        "score": 0.3629679390071102,
+        "rank": 4,
+        "universe": 5022,
+        "percentile": 0.0007964954201513341,
+        "validFactors": 7,
+        "signal": "买入观察",
+        "reason": "综合分排名 4 / 5022（前 0.1%）",
+        "exitRule": "排名掉出前 16，或综合分转负",
+        "contributions": [
+          {
+            "factor": "turn20",
+            "contribution": 0.47690163281561126,
+            "direction": -1
+          },
+          {
+            "factor": "max_ret20",
+            "contribution": 0.4492234169653524,
+            "direction": -1
+          },
+          {
+            "factor": "amihud20",
+            "contribution": 0.44265232974910396,
+            "direction": 1
+          },
+          {
+            "factor": "turn_cv20",
+            "contribution": 0.42791716447630423,
+            "direction": -1
+          },
+          {
+            "factor": "mom60",
+            "contribution": 0.316052842273819,
+            "direction": 1
+          },
+          {
+            "factor": "corr_pv20",
+            "contribution": 0.28594185583432896,
+            "direction": -1
+          },
+          {
+            "factor": "ma_gap60",
+            "contribution": 0.1420863309352518,
+            "direction": -1
+          }
+        ]
+      },
+      {
+        "symbol": "603385",
+        "name": "惠达卫浴",
+        "close": 4.89,
+        "score": 0.3603333683092083,
+        "rank": 5,
+        "universe": 5022,
+        "percentile": 0.0009956192751891676,
+        "validFactors": 7,
+        "signal": "买入观察",
+        "reason": "综合分排名 5 / 5022（前 0.1%）",
+        "exitRule": "排名掉出前 16，或综合分转负",
+        "contributions": [
+          {
+            "factor": "amihud20",
+            "contribution": 0.4882516925527678,
+            "direction": 1
+          },
+          {
+            "factor": "turn20",
+            "contribution": 0.4852648347272003,
+            "direction": -1
+          },
+          {
+            "factor": "turn_cv20",
+            "contribution": 0.4703305455993628,
+            "direction": -1
+          },
+          {
+            "factor": "corr_pv20",
+            "contribution": 0.38311429709279177,
+            "direction": -1
+          },
+          {
+            "factor": "max_ret20",
+            "contribution": 0.3164078056551175,
+            "direction": -1
+          },
+          {
+            "factor": "mom60",
+            "contribution": 0.29223378702962366,
+            "direction": 1
+          },
+          {
+            "factor": "ma_gap60",
+            "contribution": 0.08673061550759398,
+            "direction": -1
+          }
+        ]
+      },
+      {
+        "symbol": "002114",
+        "name": "罗平锌电",
+        "close": 5.87,
+        "score": 0.3501808097173568,
+        "rank": 6,
+        "universe": 5022,
+        "percentile": 0.0011947431302270011,
+        "validFactors": 7,
+        "signal": "买入观察",
+        "reason": "综合分排名 6 / 5022（前 0.1%）",
+        "exitRule": "排名掉出前 16，或综合分转负",
+        "contributions": [
+          {
+            "factor": "corr_pv20",
+            "contribution": 0.47491039426523296,
+            "direction": -1
+          },
+          {
+            "factor": "turn20",
+            "contribution": 0.3914774990043808,
+            "direction": -1
+          },
+          {
+            "factor": "amihud20",
+            "contribution": 0.3765432098765432,
+            "direction": 1
+          },
+          {
+            "factor": "ma_gap60",
+            "contribution": 0.32014388489208634,
+            "direction": -1
+          },
+          {
+            "factor": "mom60",
+            "contribution": 0.3074459567654123,
+            "direction": 1
+          },
+          {
+            "factor": "max_ret20",
+            "contribution": 0.3031660692951016,
+            "direction": -1
+          },
+          {
+            "factor": "turn_cv20",
+            "contribution": 0.27757865392273995,
+            "direction": -1
+          }
+        ]
+      },
+      {
+        "symbol": "002942",
+        "name": "新农股份",
+        "close": 14.59,
+        "score": 0.3492208408080458,
+        "rank": 7,
+        "universe": 5022,
+        "percentile": 0.0013938669852648347,
+        "validFactors": 7,
+        "signal": "买入观察",
+        "reason": "综合分排名 7 / 5022（前 0.1%）",
+        "exitRule": "排名掉出前 16，或综合分转负",
+        "contributions": [
+          {
+            "factor": "turn20",
+            "contribution": 0.39187574671445635,
+            "direction": -1
+          },
+          {
+            "factor": "mom60",
+            "contribution": 0.39051240992794234,
+            "direction": 1
+          },
+          {
+            "factor": "max_ret20",
+            "contribution": 0.3783353245718837,
+            "direction": -1
+          },
+          {
+            "factor": "corr_pv20",
+            "contribution": 0.375547590601354,
+            "direction": -1
+          },
+          {
+            "factor": "amihud20",
+            "contribution": 0.3701712465153325,
+            "direction": 1
+          },
+          {
+            "factor": "turn_cv20",
+            "contribution": 0.351652727996814,
+            "direction": -1
+          },
+          {
+            "factor": "ma_gap60",
+            "contribution": 0.18645083932853712,
+            "direction": -1
+          }
+        ]
+      },
+      {
+        "symbol": "000926",
+        "name": "福星股份",
+        "close": 1.59,
+        "score": 0.3490379181717741,
+        "rank": 8,
+        "universe": 5022,
+        "percentile": 0.0015929908403026682,
+        "validFactors": 7,
+        "signal": "买入观察",
+        "reason": "综合分排名 8 / 5022（前 0.2%）",
+        "exitRule": "排名掉出前 16，或综合分转负",
+        "contributions": [
+          {
+            "factor": "max_ret20",
+            "contribution": 0.49581839904420555,
+            "direction": -1
+          },
+          {
+            "factor": "ma_gap60",
+            "contribution": 0.4266586730615508,
+            "direction": -1
+          },
+          {
+            "factor": "corr_pv20",
+            "contribution": 0.4000398247710075,
+            "direction": -1
+          },
+          {
+            "factor": "turn20",
+            "contribution": 0.3809239346873755,
+            "direction": -1
+          },
+          {
+            "factor": "turn_cv20",
+            "contribution": 0.37236160892074865,
+            "direction": -1
+          },
+          {
+            "factor": "amihud20",
+            "contribution": 0.27518916766228596,
+            "direction": 1
+          },
+          {
+            "factor": "mom60",
+            "contribution": 0.09227381905524423,
+            "direction": 1
+          }
+        ]
+      }
+    ]
+  },
+  "recentOnly": null
+}
